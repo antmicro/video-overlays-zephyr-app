@@ -9,7 +9,7 @@
 
 uint8_t buff[SEND_LEN];
 uint8_t num_msgs_arr[4];
-uint8_t remainder_arr[2];
+uint8_t remainder_arr[4];
 int rem;
 
 struct sockaddr_in arty_sockaddr;
@@ -56,7 +56,7 @@ int send_remainder_arr(int sock, struct sockaddr *sock_addr)
 {
 	int ret;
 
-	ret = sendto(sock, remainder_arr, 2, 0, sock_addr, sizeof(*sock_addr));
+	ret = sendto(sock, remainder_arr, 4, 0, sock_addr, sizeof(*sock_addr));
 
 	return ret;
 }
@@ -91,12 +91,14 @@ void send_image(uint32_t img_buff[], uint32_t img_length)
 {
 	int ret;
 
-	int num_msgs = img_length * 2 / SEND_LEN;
-	rem = (img_length * 2) % SEND_LEN;
+	int num_msgs = img_length * 4 / SEND_LEN;
+	rem = (img_length * 4) % SEND_LEN;
 
 	if (rem) {
-		remainder_arr[0] = rem >> 8;
-		remainder_arr[1] = rem;
+		remainder_arr[0] = rem >> 24;
+		remainder_arr[1] = rem >> 16;
+		remainder_arr[2] = rem >> 8;
+		remainder_arr[3] = rem;
 	}
 
 	/* write 32 bit value to 8 bit array */
@@ -110,12 +112,14 @@ void send_image(uint32_t img_buff[], uint32_t img_length)
 		printf("Failed to send data. Error: %d, errno: %d\n", ret,
 			   -errno);
 
-	k_msleep(1000);
 	int k = 0;
+	printf("num_msgs: %d\n", num_msgs);
 	while (num_msgs) {
-		for (int i = 0; i < SEND_LEN; i+=2) {
-			buff[i] = img_buff[k] >> 8;
-			buff[i + 1] = img_buff[k];
+		for (int i = 0; i < SEND_LEN; i += 4) {
+			buff[i + 3] = img_buff[k] >> 24;
+			buff[i + 2] = img_buff[k] >> 16;
+			buff[i + 1] = img_buff[k] >> 8;
+			buff[i + 0] = img_buff[k];
 			k++;
 		}
 		ret = send_data(sock, (struct sockaddr *)&host_sockaddr);
@@ -131,13 +135,15 @@ void send_image(uint32_t img_buff[], uint32_t img_length)
 				ret, -errno);
 
 	int i = 0;
-	rem /= 2;
+	rem /= 4;
 
 	while (rem) {
-		buff[i] = img_buff[k] >> 8;
-		buff[i + 1] = img_buff[k];
+		buff[i + 0] = img_buff[k] >> 24;
+		buff[i + 1] = img_buff[k] >> 16;
+		buff[i + 2] = img_buff[k] >> 8;
+		buff[i + 3] = img_buff[k];
 		k++;
-		i += 2;
+		i += 4;
 		rem--;
 	}
 	send_remainder(sock, (struct sockaddr *)&host_sockaddr);

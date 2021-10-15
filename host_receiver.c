@@ -9,7 +9,7 @@
 
 uint8_t buff[RECV_LEN];
 uint8_t num_msgs_arr[4];
-uint8_t remainder_arr[2];
+uint8_t remainder_arr[4];
 int rem;
 
 int bind_socket(int sock, struct sockaddr *sock_addr, socklen_t sock_addrlen)
@@ -52,7 +52,7 @@ int receive_remainder_arr(int sock, struct sockaddr *sock_addr, socklen_t *sock_
 {
 	int ret;
 
-	ret = recvfrom(sock, remainder_arr, 2, 0, sock_addr, sock_addrlen);
+	ret = recvfrom(sock, remainder_arr, 4, 0, sock_addr, sock_addrlen);
 
 	return ret;
 }
@@ -97,16 +97,14 @@ void main()
 			printf("Failed to receive data. Error: %d, errno: %d\n",
 				   ret, -errno);
 
-		uint16_t rgb565_pixel = 0;
-		for(int i = 0; i < RECV_LEN; i++){
-			if(i % 2 == 0){
-				rgb565_pixel |= buff[i] << 8;
-			}
-			else{
-				rgb565_pixel |= buff[i];
-				fwrite(&rgb565_pixel, 1, sizeof(rgb565_pixel), file);
-				rgb565_pixel = 0;
-			}
+		uint32_t rgb565_pixel = 0;
+		for(int i = 0; i < RECV_LEN; i += 4){
+			rgb565_pixel |= buff[i + 3] << 24;
+			rgb565_pixel |= buff[i + 2] << 16;
+			rgb565_pixel |= buff[i + 1] << 8;
+			rgb565_pixel |= buff[i + 0];
+			fwrite(&rgb565_pixel, 1, sizeof(rgb565_pixel), file);
+			rgb565_pixel = 0;
 		}
 		num_msgs--;
 	}
@@ -114,7 +112,7 @@ void main()
 	ret = receive_remainder_arr(sock, (struct sockaddr *)&host_sockaddr,
 			   (socklen_t *)&addrlen);
 
-	rem = remainder_arr[0] << 8 | remainder_arr[1];
+	rem = remainder_arr[0] << 24 | remainder_arr[1] << 16 | remainder_arr[2] << 8 | remainder_arr[3];
 	printf("remainder: %d\n", rem);
 
 	if (rem) {
@@ -123,14 +121,20 @@ void main()
 		if (ret < 0)
 			printf("Failed to receive data. Error: %d, errno: %d\n",
 					ret, -errno);
-		uint16_t rgb565_pixel = 0;
 
+		uint32_t rgb565_pixel = 0;
 		for(int i = 0; i < rem; i++){
-			if(i % 2 == 0){
-				rgb565_pixel |= buff[i] << 8;
+			if(i % 4 == 0){
+				rgb565_pixel |= buff[i] << 24 & 0xff000000;
+			}
+			else if(i % 3 == 0){
+				rgb565_pixel |= buff[i] << 16 & 0x00ff0000;
+			}
+			else if(i % 2 == 0){
+				rgb565_pixel |= buff[i] << 8 & 0x0000ff00;
 			}
 			else{
-				rgb565_pixel |= buff[i];
+				rgb565_pixel |= buff[i] & 0x000000ff;
 				fwrite(&rgb565_pixel, 1, sizeof(rgb565_pixel), file);
 				rgb565_pixel = 0;
 			}
