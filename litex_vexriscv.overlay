@@ -1,0 +1,124 @@
+&uart0 {
+	reg = <0xf0006800 0x20>;
+	interrupts = <0x0 0>;
+};
+
+&timer0 {
+	reg = <0xf0006000 0x40>;
+	interrupts = <0x1 0>;
+};
+
+&eth0 {
+	reg = <0xf0003800 0x6b 0x80000000 0x2000>;
+	interrupts = <0x2 0>;
+};
+
+&i2c0 {
+	reg = <0xf0000000 0x4 0xf0000004 0x4>;
+	label = "i2c0";
+	mux: tca9546a@70 {
+		compatible = "ti,tca9546a";
+		reg = <0x70>;
+		status = "okay";
+		label = "i2c_mux";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		mux_i2c@0 {
+			label = "mux_dw_0";
+			reg = <0>;
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			compatible = "ti,tca9546a-channel";
+
+			pcf8574@23 {
+				compatible = "nxp,pcf8574";
+				reg = <0x23>;
+				label = "PCA9500_GPIO";
+				status = "okay";
+				ngpios = <8>;
+				#gpio-cells = <2>;
+				gpio-controller;
+			};
+		};
+
+		mux_i2c@1 {
+			label = "mux_dw_1";
+			reg = <1>;
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			compatible = "ti,tca9546a-channel";
+
+			ov2640@30 {
+				compatible = "ovti,ov2640";
+				reg = <0x30>;
+				label = "OV2640_1";
+				status = "okay";
+			};
+		};
+
+		mux_i2c@2 {
+			label = "mux_dw_2";
+			reg = <2>;
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			compatible = "ti,tca9546a-channel";
+
+			ov2640@30 {
+				compatible = "ovti,ov2640";
+				reg = <0x30>;
+				label = "OV2640_2";
+				status = "okay";
+			};
+		};
+	};
+};
+
+&fastvdma_1 {
+	status = "okay";
+	label = "FASTVDMA_1";
+	reg = <0x8000a000 0x4
+		0x8000a004 0x1
+		0x8000a008 0x1
+		0x8000a00c 0x1
+		0x8000a010 0x1
+		0x8000a014 0x1
+		0x8000a018 0x1
+		0x8000a01c 0x1
+		0x8000a020 0x1
+		0x8000a024 0x1
+		0x8000a028 0x1
+		0x8000a02c 0x1
+		0xf0001000 0x1
+		0xf0001004 0x1
+		0xf0001008 0x1>;
+	interrupts = <0x3 0>;
+};
+
+&fastvdma_2 {
+	status = "okay";
+	label = "FASTVDMA_2";
+	reg = <0x8000b000 0x4
+		0x8000b004 0x1
+		0x8000b008 0x1
+		0x8000b00c 0x1
+		0x8000b010 0x1
+		0x8000b014 0x1
+		0x8000b018 0x1
+		0x8000b01c 0x1
+		0x8000b020 0x1
+		0x8000b024 0x1
+		0x8000b028 0x1
+		0x8000b02c 0x1
+		0xf0002000 0x1
+		0xf0002004 0x1
+		0xf0002008 0x1>;
+	interrupts = <0x4 0>;
+};
+
+&gpio_in {
+	status = "disabled";
+};
