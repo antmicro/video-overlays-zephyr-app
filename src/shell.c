@@ -7,6 +7,11 @@
 #include <drivers/dma.h>
 #include <string.h>
 
+#include "pattern.h"
+#include "initiator.h"
+#include "mmcm.h"
+#include "time.h"
+
 #include "net.h"
 
 extern const struct device* ov2640_dev_1;
@@ -25,6 +30,65 @@ extern struct dma_block_config dma_block_cfg;
 
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
+
+#define BUFFER_ADDR 0x200000
+
+struct video_timing vt1920x1080_60Hz = {
+	.pixel_clock = 14850,
+
+	.h_active = 1920,
+	.h_blanking = 280,
+	.h_sync_offset = 88,
+	.h_sync_width = 44,
+
+	.v_active = 1080,
+	.v_blanking = 45,
+	.v_sync_offset = 4,
+	.v_sync_width = 5,
+};
+struct video_timing vt1280x720_60Hz = {
+
+	.pixel_clock = 7425,
+
+	.h_active = 1280,
+	.h_blanking = 370,
+	.h_sync_offset = 110,
+	.h_sync_width = 40,
+
+	.v_active = 720,
+	.v_blanking = 30,
+	.v_sync_offset = 5,
+	.v_sync_width = 5,
+};
+struct video_timing vt800x600_60Hz = {
+
+	.pixel_clock = 4000,
+
+	.h_active = 800,
+	.h_blanking = 256,
+	.h_sync_offset = 40,
+	.h_sync_width = 128,
+
+	.v_active = 600,
+	.v_blanking = 28,
+	.v_sync_offset = 1,
+	.v_sync_width = 4,
+};
+struct video_timing vt640x480_75Hz = {
+
+	.pixel_clock = 3150,
+
+	.h_active = 640,     
+	.h_blanking = 200, 
+	.h_sync_offset = 16, 
+	.h_sync_width = 64,
+
+	.v_active = 480,     
+	.v_blanking = 20,	
+	.v_sync_offset = 1,  
+	.v_sync_width = 3,
+};
+
 
 void flush_l2_cache(void)
 {
@@ -497,6 +561,62 @@ static int cmd_ov2640_capture(const struct shell *shell, size_t argc,
 	return err | ret;
 }
 
+
+int set_resolution(const struct shell *shell, size_t argc, char **argv)
+{
+
+	hdmi_out0_core_initiator_enable_write(0);
+	hdmi_out0_driver_clocking_mmcm_reset_write(1);
+	if(strcmp(argv[1], "1920x1080_60Hz") == 0){
+		timings_write(&vt1920x1080_60Hz);	
+	}
+	else if (strcmp(argv[1], "1280x720_60Hz") == 0){
+		timings_write(&vt1280x720_60Hz);	
+	}
+	else if (strcmp(argv[1], "800x600_60Hz") == 0){
+		timings_write(&vt800x600_60Hz);	
+	}
+	else if (strcmp(argv[1], "640x480_75Hz") == 0){
+		timings_write(&vt640x480_75Hz);	
+	}
+	else {
+			shell_print(shell, "\nUnsupported resolution!\n");
+			return 0;
+	}
+	hdmi_out0_driver_clocking_mmcm_reset_write(0);
+
+	shell_print(shell, "\nResoluton set!\n");
+    return 0;
+}
+
+int test_display(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(1);
+	draw_color(640, 480, RGB_RED);
+	k_msleep(1000);
+	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
+	k_msleep(1000);
+	draw_color(640, 480, RGB_GREEN);
+	k_msleep(1000);
+	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
+	k_msleep(1000);
+	draw_color(640, 480, RGB_BLUE);
+	k_msleep(1000);
+	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
+	k_msleep(1000);
+	draw_color(640, 480, RGB_BLACK);
+	k_msleep(1000);
+	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
+	k_msleep(1000);
+	draw_color(640, 480, RGB_WHITE);
+	k_msleep(1000);
+	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
+	k_msleep(1000);
+    return 0;
+}
+
+
+
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_ov2640_control,
 	SHELL_CMD_ARG(brightness, NULL, "\t(-2 to +2) Set brightness level", cmd_ov2640_set_brightness, 2, 1),
@@ -522,3 +642,16 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(ov2640, &sub_ov2640, "\tov2640 commands", NULL);
+
+
+SHELL_STATIC_SUBCMD_SET_CREATE(
+	sub_display, SHELL_CMD_ARG(test_colors, NULL, NULL, test_display, 1, 0),
+	SHELL_CMD_ARG(set_resolution, NULL,
+					    "Resolutions:\n"
+					    "1920x1080_60Hz\t"
+					    "1280x720_60Hz\t"
+					    "800x600_60Hz\t"
+					    "640x480_75Hz\n", set_resolution, 2, 1),
+	SHELL_SUBCMD_SET_END);
+
+SHELL_CMD_REGISTER(display, &sub_display, "display commands", NULL);
