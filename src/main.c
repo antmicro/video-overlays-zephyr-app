@@ -137,11 +137,8 @@ void main(void)
 	fastvdma_dev_2 = device_get_binding(FASTVDMA_2);
 	gpio_expander = device_get_binding(GPIO_EXPANDER);
 
-	if (ov2640_dev_1 == NULL) {// || ov2640_dev_2 == NULL) {
-        printf("ov2640_1 camera binding failed.\n");
-	}
-	if (ov2640_dev_2 == NULL) {
-        printf("ov2640_2 camera binding failed.\n");
+	if (ov2640_dev_1 == NULL || ov2640_dev_2 == NULL) {
+        printf("ov2640 camera binding failed.\n");
 		return;
 	}
 

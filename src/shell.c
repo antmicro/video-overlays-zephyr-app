@@ -360,7 +360,9 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 
 				/*set block size, driver will get image width from that */
 				dma_block_cfg.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg.dest_address = &img_buff_1;
 				dma_config(fastvdma_dev_1, 0, &dma_cfg);
+				dma_block_cfg.dest_address = &img_buff_2;
 				dma_config(fastvdma_dev_2, 0, &dma_cfg);
 			}
 			i++;
@@ -382,6 +384,7 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 
 				/*set block size, driver will get image width from that */
 				dma_block_cfg.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg.dest_address = &img_buff_1;
 				dma_config(fastvdma_dev_1, 0, &dma_cfg);
 			}
 			i++;
@@ -402,6 +405,7 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 
 				/*set block size, driver will get image width from that */
 				dma_block_cfg.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg.dest_address = &img_buff_2;
 				dma_config(fastvdma_dev_2, 0, &dma_cfg);
 			}
 			i++;
@@ -412,7 +416,19 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 		err = -1;
 	}
 
-	if (err) {
+	printf(" - (OV2640_1) Current format: %c%c%c%c %ux%u\n", (char)fmt_1.pixelformat,
+	       (char)(fmt_1.pixelformat >> 8),
+	       (char)(fmt_1.pixelformat >> 16),
+	       (char)(fmt_1.pixelformat >> 24),
+	       fmt_1.width, fmt_1.height);
+
+	printf(" - (OV2640_2) Current format: %c%c%c%c %ux%u\n", (char)fmt_2.pixelformat,
+	       (char)(fmt_2.pixelformat >> 8),
+	       (char)(fmt_2.pixelformat >> 16),
+	       (char)(fmt_2.pixelformat >> 24),
+	       fmt_2.width, fmt_2.height);
+
+	if (err | ret) {
 		shell_error(shell, "ov2640 - set resolution failed, error: %d, ret: %d", err, ret);
 	}
 
