@@ -13,6 +13,7 @@
 #include "time.h"
 
 #include "net.h"
+#include "img_gen.h"
 
 extern const struct device* ov2640_dev_1;
 extern const struct device* ov2640_dev_2;
@@ -576,7 +577,6 @@ static int cmd_ov2640_capture(const struct shell *shell, size_t argc,
 	return err | ret;
 }
 
-
 int set_resolution(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(0);
@@ -690,6 +690,19 @@ int test_video(const struct shell *shell, size_t argc, char **argv)
 	}
 }
 
+static int cmd_generate_image_with_text(const struct shell *shell, size_t argc,
+				char **argv)
+{
+	uint32_t image_with_text[800 * 600];
+	char *text = "Video Overlays 2021";
+
+	generate_image_with_text(&image_with_text, text);
+
+	shell_print(shell, "send generated image...");
+	send_image(&image_with_text, 800 * 600);
+
+	return 0;
+}
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_ov2640_control,
@@ -731,3 +744,4 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(display, &sub_display, "\tdisplay commands", NULL);
+SHELL_CMD_REGISTER(generate, NULL, "\tgenerate image with text", cmd_generate_image_with_text);
