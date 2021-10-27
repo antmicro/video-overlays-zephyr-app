@@ -29,6 +29,7 @@ extern struct video_format fmt_2;
 extern struct video_caps caps;
 extern struct dma_config dma_cfg;
 extern struct dma_block_config dma_block_cfg;
+uint32_t image_with_text[1600 * 1200];
 
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
@@ -693,13 +694,12 @@ int test_video(const struct shell *shell, size_t argc, char **argv)
 static int cmd_generate_image_with_text(const struct shell *shell, size_t argc,
 				char **argv)
 {
-	uint32_t image_with_text[800 * 600];
-	char *text = "Video Overlays 2021";
+	char *text = "2021-10-27 9:31";
 
-	generate_image_with_text(&image_with_text, text);
+	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
 
 	shell_print(shell, "send generated image...");
-	send_image(&image_with_text, 800 * 600);
+	send_image(&image_with_text, img_length_1);
 
 	return 0;
 }
