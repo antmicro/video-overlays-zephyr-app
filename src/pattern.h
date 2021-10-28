@@ -13,5 +13,6 @@
 #define RGB_PURPLE 0x00ff00ff
 #define RGB_RED    0x000000ff
 #define RGB_BLUE   0x00ff0000
+#define RGB_TEST   0xFF000000
 #define RGB_BLACK  0x00000000
 void draw_pattern(int h_active, int v_active);

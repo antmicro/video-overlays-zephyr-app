@@ -30,7 +30,6 @@ extern struct dma_block_config dma_block_cfg;
 
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
-
 #define BUFFER_ADDR 0x200000
 
 struct video_timing vt1920x1080_60Hz = {
@@ -564,7 +563,6 @@ static int cmd_ov2640_capture(const struct shell *shell, size_t argc,
 
 int set_resolution(const struct shell *shell, size_t argc, char **argv)
 {
-
 	hdmi_out0_core_initiator_enable_write(0);
 	hdmi_out0_driver_clocking_mmcm_reset_write(1);
 	if(strcmp(argv[1], "1920x1080_60Hz") == 0){
@@ -604,17 +602,19 @@ int test_display(const struct shell *shell, size_t argc, char **argv)
 	k_msleep(1000);
 	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
 	k_msleep(1000);
-	draw_color(640, 480, RGB_BLACK);
-	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
-	k_msleep(1000);
-	draw_color(640, 480, RGB_WHITE);
+	draw_color(640, 480, RGB_TEST);
 	k_msleep(1000);
 	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
 	k_msleep(1000);
     return 0;
 }
 
+int image(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(1);
+
+	hdmi_out0_core_initiator_base_write(&img_buff_1);
+}
 
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
@@ -646,6 +646,7 @@ SHELL_CMD_REGISTER(ov2640, &sub_ov2640, "\tov2640 commands", NULL);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_display, SHELL_CMD_ARG(test_colors, NULL, NULL, test_display, 1, 0),
+	SHELL_CMD_ARG(image, NULL, NULL, image, 1, 0),
 	SHELL_CMD_ARG(set_resolution, NULL,
 					    "Resolutions:\n"
 					    "1920x1080_60Hz\t"
