@@ -613,7 +613,43 @@ int image(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
 
-	hdmi_out0_core_initiator_base_write(&img_buff_1);
+	hdmi_out0_core_initiator_base_write(&img_buff_2);
+
+	flush_l2_cache();
+	dma_block_cfg.dest_address = &img_buff_2;
+	dma_config(fastvdma_dev_1, 0, &dma_cfg);
+	dma_start(fastvdma_dev_1, 0);
+
+	while(1){
+		flush_l2_cache();
+		dma_block_cfg.dest_address = &img_buff_1;
+		dma_config(fastvdma_dev_1, 0, &dma_cfg);
+		dma_start(fastvdma_dev_1, 0);
+		k_msleep(1000);
+		flush_l2_cache();
+		dma_block_cfg.dest_address = &img_buff_2;
+		dma_config(fastvdma_dev_1, 0, &dma_cfg);
+		dma_start(fastvdma_dev_1, 0);
+		k_msleep(1000);
+        hdmi_out0_core_initiator_base_write(&img_buff_2);
+		k_msleep(1000);
+		hdmi_out0_core_initiator_base_write(&img_buff_1);
+		k_msleep(1000);
+		// flush_l2_cache();
+		// dma_block_cfg.dest_address = &img_buff_1;
+		// dma_config(fastvdma_dev_1, 0, &dma_cfg);
+		// dma_start(fastvdma_dev_1, 0);
+		// k_msleep(1000);
+		// hdmi_out0_core_initiator_base_write(&img_buff_2);
+		// k_msleep(1000);
+		// flush_l2_cache();
+		// dma_block_cfg.dest_address = &img_buff_2;
+		// dma_config(fastvdma_dev_1, 0, &dma_cfg);
+		// dma_start(fastvdma_dev_1, 0);
+		// k_msleep(1000);
+		// hdmi_out0_core_initiator_base_write(&img_buff_1);
+		// k_msleep(1000);
+	}
 }
 
 
@@ -655,4 +691,4 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 					    "640x480_75Hz\n", set_resolution, 2, 1),
 	SHELL_SUBCMD_SET_END);
 
-SHELL_CMD_REGISTER(display, &sub_display, "display commands", NULL);
+SHELL_CMD_REGISTER(display, &sub_display, "\tdisplay commands", NULL);

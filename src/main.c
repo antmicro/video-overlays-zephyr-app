@@ -66,9 +66,9 @@ void led_chaser()
 	}
 }
 
-// K_THREAD_DEFINE(my_tid, MY_STACK_SIZE,
-//                 led_chaser, NULL, NULL, NULL,
-//                 MY_PRIORITY, 0, 0);
+K_THREAD_DEFINE(my_tid, MY_STACK_SIZE,
+                led_chaser, NULL, NULL, NULL,
+                MY_PRIORITY, 0, 0);
 
 void dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
