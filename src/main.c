@@ -35,6 +35,7 @@ const struct device* gpio_expander;
 
 uint32_t img_buff_1[1600 * 1200] = { 0 };
 uint32_t img_buff_2[1600 * 1200] = { 0 };
+uint32_t img_buff_3[1600 * 1200] = { 0 };
 uint32_t img_length_1 = 800 * 600;
 uint32_t img_length_2 = 800 * 600;
 
@@ -66,9 +67,9 @@ void led_chaser()
 	}
 }
 
-K_THREAD_DEFINE(my_tid, MY_STACK_SIZE,
-                led_chaser, NULL, NULL, NULL,
-                MY_PRIORITY, 0, 0);
+// K_THREAD_DEFINE(my_tid, MY_STACK_SIZE,
+//                 led_chaser, NULL, NULL, NULL,
+//                 MY_PRIORITY, 0, 0);
 
 void dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
