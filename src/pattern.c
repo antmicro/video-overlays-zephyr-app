@@ -59,3 +59,22 @@ void draw_color2(int h_active, int v_active, int color)
 			buffer[i] = color;
 	}
 }
+
+void draw_image(int h_active, int v_active)
+{
+	volatile unsigned int *buffer = (unsigned int *)0x40200000;
+	/* color bar pattern */
+	int temp = 0;
+	for (int i = 0; i < h_active * v_active; i++) {
+			if(i % h_active == 0){
+				temp++;
+			}
+			if(temp % 2 == 0){
+				buffer[i] = RGB_GREEN;
+			}
+			else{
+				buffer[i] = RGB_RED;
+			}
+	}
+}
+

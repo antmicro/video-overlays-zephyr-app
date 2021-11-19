@@ -18,9 +18,9 @@ extern const struct device* ov2640_dev_1;
 extern const struct device* ov2640_dev_2;
 extern const struct device* fastvdma_dev_1;
 extern const struct device* fastvdma_dev_2;
-extern uint32_t img_buff_1;
-extern uint32_t img_buff_2;
-extern uint32_t img_buff_3;
+extern uint32_t img_buff_1[800 * 600];
+extern uint32_t img_buff_2[800 * 600];
+extern uint32_t img_buff_3[800 * 600];
 extern uint32_t img_length_1;
 extern uint32_t img_length_2;
 extern struct video_format fmt_1;
@@ -32,7 +32,7 @@ extern struct dma_block_config dma_block_cfg;
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
 #define BUFFER_ADDR 0x200000
-
+#define GEN_PURPOSE_1   		(*(volatile uint32_t *)(0xf000388c))
 struct video_timing vt1920x1080_60Hz = {
 	.pixel_clock = 14850,
 
@@ -87,6 +87,21 @@ struct video_timing vt640x480_75Hz = {
 	.v_blanking = 20,	
 	.v_sync_offset = 1,  
 	.v_sync_width = 3,
+};
+struct video_timing vt640x480_60Hz = {
+
+	.pixel_clock = 2517,
+
+	.h_active = 640,     
+	.h_blanking = 160, 
+	.h_sync_offset = 16, 
+	.h_sync_width = 96,
+
+	.v_active = 480,     
+	.v_blanking = 45,	
+	.v_sync_offset = 10,  
+	.v_sync_width = 2,
+
 };
 
 
@@ -578,6 +593,9 @@ int set_resolution(const struct shell *shell, size_t argc, char **argv)
 	else if (strcmp(argv[1], "640x480_75Hz") == 0){
 		timings_write(&vt640x480_75Hz);	
 	}
+	else if (strcmp(argv[1], "640x480_60Hz") == 0){
+		timings_write(&vt640x480_60Hz);	
+	}
 	else {
 			shell_print(shell, "\nUnsupported resolution!\n");
 			return 0;
@@ -607,14 +625,38 @@ int test_display(const struct shell *shell, size_t argc, char **argv)
 	k_msleep(1000);
 	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
 	k_msleep(1000);
+	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
     return 0;
 }
 
-int image(const struct shell *shell, size_t argc, char **argv)
+int test_image(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
+	img_buff_1[0] = 0x000000ff;
 
-	// hdmi_out0_core_initiator_base_write(&img_buff_2);
+	img_buff_1[799] = 0x000000ff;
+
+	img_buff_1[239199] = 0x000000ff;
+
+	img_buff_1[239999] = 0x000000ff;
+
+	img_buff_1[479199] = 0x000000ff;
+	img_buff_1[479198] = 0x000000ff;
+	img_buff_1[479197] = 0x000000ff;
+	img_buff_1[479196] = 0x000000ff;
+
+	img_buff_1[479999] = 0x000000ff;
+	img_buff_1[479998] = 0x000000ff;
+	img_buff_1[479997] = 0x000000ff;
+	img_buff_1[479996] = 0x000000ff;
+
+	
+	hdmi_out0_core_initiator_base_write(&img_buff_1);
+}
+
+int test_video(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(1);
 
 	flush_l2_cache();
 	dma_block_cfg.dest_address = &img_buff_2;
@@ -623,26 +665,13 @@ int image(const struct shell *shell, size_t argc, char **argv)
 	struct dma_status stat;
 
 	while(1){
-	// 	// flush_l2_cache();
-	// 	// dma_block_cfg.dest_address = &img_buff_1;
-	// 	// dma_config(fastvdma_dev_1, 0, &dma_cfg);
-	// 	// dma_start(fastvdma_dev_1, 0);
-	// 	// k_msleep(1000);
-	// 	// flush_l2_cache();
-	// 	// dma_block_cfg.dest_address = &img_buff_2;
-	// 	// dma_config(fastvdma_dev_1, 0, &dma_cfg);
-	// 	// dma_start(fastvdma_dev_1, 0);
-	// 	// k_msleep(1000);
-    //     // hdmi_out0_core_initiator_base_write(&img_buff_2);
-	// 	// k_msleep(1000);
-	// 	// hdmi_out0_core_initiator_base_write(&img_buff_1);
-	// 	// k_msleep(1000);
 		flush_l2_cache();
 		dma_block_cfg.dest_address = &img_buff_1;
 		dma_config(fastvdma_dev_1, 0, &dma_cfg);
 		dma_start(fastvdma_dev_1, 0);
 		k_msleep(10);
-		while(stat.busy){
+		dma_get_status(fastvdma_dev_1, 0, &stat);
+		while(stat.busy != 0){
 			dma_get_status(fastvdma_dev_1, 0, &stat);
 		}
 		hdmi_out0_core_initiator_base_write(&img_buff_2);
@@ -652,7 +681,8 @@ int image(const struct shell *shell, size_t argc, char **argv)
 		dma_config(fastvdma_dev_1, 0, &dma_cfg);
 		dma_start(fastvdma_dev_1, 0);
 		k_msleep(10);
-		while(stat.busy){
+		dma_get_status(fastvdma_dev_1, 0, &stat);
+		while(stat.busy != 0){
 			dma_get_status(fastvdma_dev_1, 0, &stat);
 		}
 		hdmi_out0_core_initiator_base_write(&img_buff_1);
@@ -662,7 +692,8 @@ int image(const struct shell *shell, size_t argc, char **argv)
 		dma_config(fastvdma_dev_1, 0, &dma_cfg);
 		dma_start(fastvdma_dev_1, 0);
 		k_msleep(10);
-		while(stat.busy){
+	    dma_get_status(fastvdma_dev_1, 0, &stat);
+		while(stat.busy != 0){
 			dma_get_status(fastvdma_dev_1, 0, &stat);
 		}
 		hdmi_out0_core_initiator_base_write(&img_buff_3);
@@ -700,7 +731,8 @@ SHELL_CMD_REGISTER(ov2640, &sub_ov2640, "\tov2640 commands", NULL);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_display, SHELL_CMD_ARG(test_colors, NULL, NULL, test_display, 1, 0),
-	SHELL_CMD_ARG(image, NULL, NULL, image, 1, 0),
+	SHELL_CMD_ARG(test_image, NULL, NULL, test_image, 1, 0),
+	SHELL_CMD_ARG(test_video, NULL, NULL, test_video, 1, 0),
 	SHELL_CMD_ARG(set_resolution, NULL,
 					    "Resolutions:\n"
 					    "1920x1080_60Hz\t"

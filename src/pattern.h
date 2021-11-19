@@ -16,3 +16,4 @@
 #define RGB_TEST   0xFF000000
 #define RGB_BLACK  0x00000000
 void draw_pattern(int h_active, int v_active);
+void draw_image(int h_active, int v_active);
