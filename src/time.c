@@ -54,7 +54,7 @@ void timings_write(struct video_timing *vid_t){
 	hdmi_out0_core_initiator_vsync_start_write(vid_t->v_active + vid_t->v_sync_offset);
 	hdmi_out0_core_initiator_vsync_end_write(vid_t->v_active + vid_t->v_sync_offset + vid_t->v_sync_width);
 	hdmi_out0_core_initiator_vscan_write(vid_t->v_active + vid_t->v_blanking);
-	hdmi_out0_core_initiator_length_write(vid_t->h_active*vid_t->v_active*2);
+	hdmi_out0_core_initiator_length_write(vid_t->h_active*vid_t->v_active*4);
 	hdmi_out0_core_initiator_enable_write(hdmi_out0_enabled);
 	fb_set_clock(vid_t->pixel_clock);
 }
