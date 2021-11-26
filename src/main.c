@@ -33,11 +33,14 @@ const struct device* fastvdma_dev_1;
 const struct device* fastvdma_dev_2;
 const struct device* gpio_expander;
 
-uint32_t img_buff_1[800 * 600];
-uint32_t img_buff_2[800 * 600];
-uint32_t img_buff_3[800 * 600];
-uint32_t img_length_1 = 800 * 600;
-uint32_t img_length_2 = 800 * 600;
+uint32_t img_buff_1[1600 * 1200];
+uint32_t img_buff_2[1600 * 1200];
+uint32_t img_buff_3[1600 * 1200];
+uint32_t img_buff_4[1600 * 1200];
+uint32_t img_buff_5[1600 * 1200];
+uint32_t img_buff_6[1600 * 1200];
+uint32_t img_length_1 = 1600 * 1200;
+uint32_t img_length_2 = 1600 * 1200;
 
 struct video_format fmt_1;
 struct video_format fmt_2;
