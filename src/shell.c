@@ -11,9 +11,11 @@
 #include "initiator.h"
 #include "mmcm.h"
 #include "time.h"
-
 #include "net.h"
 #include "img_gen.h"
+#include "litex_vexriscv.h"
+#include "gpu.h"
+#include "dma.h"
 
 extern const struct device* ov2640_dev_1;
 extern const struct device* ov2640_dev_2;
@@ -37,6 +39,16 @@ uint32_t image_with_text[1600 * 1200];
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
 #define BUFFER_ADDR 0x200000
+
+#define IMG2_HEIGHT 800U
+#define IMG2_WIDTH 600U
+#define IMG2_LINE IMG1_WIDTH * 4
+#define IMG2_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
+
+#define IMG1_HEIGHT 800U
+#define IMG1_WIDTH 600U
+#define IMG1_LINE IMG1_WIDTH * 4
+#define IMG1_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
 
 struct video_timing vt1920x1080_60Hz = {
 	.pixel_clock = 14850,
@@ -707,6 +719,130 @@ static int cmd_generate_image_with_text(const struct shell *shell, size_t argc,
 	return 0;
 }
 
+int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(1);
+
+	flush_l2_cache();
+	dma_block_cfg.dest_address = &img_buff_2;
+	dma_config(fastvdma_dev_1, 0, &dma_cfg);
+	dma_start(fastvdma_dev_1, 0);
+	struct dma_status stat;
+	char *text = "2021-11-25 10:00";
+
+	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
+	k_msleep(10);
+	blend_images(image_with_text, img_buff_2, img_buff_4);
+	// k_msleep(100);
+
+	while(1){
+		flush_l2_cache();
+		dma_block_cfg.dest_address = &img_buff_1;
+		dma_config(fastvdma_dev_1, 0, &dma_cfg);
+		dma_start(fastvdma_dev_1, 0);
+		k_msleep(10);
+		dma_get_status(fastvdma_dev_1, 0, &stat);
+		while(stat.busy != 0){
+			dma_get_status(fastvdma_dev_1, 0, &stat);
+		}
+		// k_msleep(100);
+		blend_images(image_with_text, img_buff_1, img_buff_5);
+		// k_msleep(100);
+		hdmi_out0_core_initiator_base_write(&img_buff_4);
+		k_msleep(10);
+		flush_l2_cache();
+		dma_block_cfg.dest_address = &img_buff_3;
+		dma_config(fastvdma_dev_1, 0, &dma_cfg);
+		dma_start(fastvdma_dev_1, 0);
+		k_msleep(10);
+		dma_get_status(fastvdma_dev_1, 0, &stat);
+		while(stat.busy != 0){
+			dma_get_status(fastvdma_dev_1, 0, &stat);
+		}
+		// k_msleep(100);
+		blend_images(image_with_text, img_buff_3, img_buff_6);
+		// k_msleep(100);
+		hdmi_out0_core_initiator_base_write(&img_buff_5);
+		k_msleep(10);
+		flush_l2_cache();
+		dma_block_cfg.dest_address = &img_buff_2;
+		dma_config(fastvdma_dev_1, 0, &dma_cfg);
+		dma_start(fastvdma_dev_1, 0);
+		k_msleep(10);
+	    dma_get_status(fastvdma_dev_1, 0, &stat);
+		while(stat.busy != 0){
+			dma_get_status(fastvdma_dev_1, 0, &stat);
+		}
+		// k_msleep(100);
+		blend_images(image_with_text, img_buff_2, img_buff_4);
+		// k_msleep(100);
+		hdmi_out0_core_initiator_base_write(&img_buff_6);
+		k_msleep(10);
+	}
+}
+
+void dmas_setup(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
+{
+	/* Configure 1st DMA RAM reader */
+	DMA_init_typedef DMA_r1;
+
+	DMA_r1.read_addr = read_addr1;
+	DMA_r1.read_line_length = IMG1_WIDTH;
+	DMA_r1.read_line_count = IMG1_HEIGHT;
+	DMA_r1.read_line_stride = 0;
+
+	DMA_r1.write_addr = 0;
+	DMA_r1.write_line_length = IMG1_WIDTH;
+	DMA_r1.write_line_count = IMG1_HEIGHT;
+	DMA_r1.write_line_stride = 0;
+	dma_config1(DMA1, &DMA_r1);
+
+	/* Configure 2nd DMA RAM reader */
+	DMA_init_typedef DMA_r2;
+
+	DMA_r2.read_addr = read_addr2;
+	DMA_r2.read_line_length = IMG2_WIDTH;
+	DMA_r2.read_line_count = IMG2_HEIGHT;
+	DMA_r2.read_line_stride = 0;
+
+	DMA_r2.write_addr = 0;
+	DMA_r2.write_line_length = IMG2_WIDTH;
+	DMA_r2.write_line_count = IMG2_HEIGHT;
+	DMA_r2.write_line_stride = 0;
+	dma_config1(DMA2, &DMA_r2);
+
+	/* Configure DMA RAM writer */
+	DMA_init_typedef DMA_w;
+
+	DMA_w.read_addr = 0;
+	DMA_w.read_line_length = IMG1_WIDTH;
+	DMA_w.read_line_count = IMG1_HEIGHT;
+	DMA_w.read_line_stride = 0;
+
+	DMA_w.write_addr = write_addr;
+	DMA_w.write_line_length = IMG1_WIDTH;
+	DMA_w.write_line_count = IMG1_HEIGHT;
+	DMA_w.write_line_stride = 0;
+	dma_writer_frontend_config1(DMA3, &DMA_w);
+
+	dma_init1(DMA1);
+	dma_init1(DMA2);
+	dma_init1(DMA3);
+}
+
+void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
+{
+	dmas_setup(read_addr1, read_addr2, write_addr);
+
+	GPU->CR = GPU_CR_ALPHA_BLENDER;
+
+	while (!(DMA1->SR & DMA2->SR & DMA3->SR));
+
+	dma_deinit1(DMA1);
+	dma_deinit1(DMA2);
+	dma_deinit1(DMA3);
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_ov2640_control,
 	SHELL_CMD_ARG(brightness, NULL, "\t(-2 to +2) Set brightness level", cmd_ov2640_set_brightness, 2, 1),
@@ -738,6 +874,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_CMD_ARG(test_cam1, NULL, NULL, test_cam1, 1, 0),
 	SHELL_CMD_ARG(test_cam2, NULL, NULL, test_cam2, 1, 0),
 	SHELL_CMD_ARG(test_video, NULL, NULL, test_video, 1, 0),
+	SHELL_CMD_ARG(test_video_with_blender, NULL, NULL, test_video_with_blender, 1, 0),
 	SHELL_CMD_ARG(set_resolution, NULL,
 					    "Resolutions:\n"
 					    "1920x1080_60Hz\t"
