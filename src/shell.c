@@ -606,7 +606,7 @@ int set_resolution(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
-int test_display(const struct shell *shell, size_t argc, char **argv)
+int test_display_colors(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
 	draw_color(640, 480, RGB_RED);
@@ -629,29 +629,18 @@ int test_display(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
-int test_image(const struct shell *shell, size_t argc, char **argv)
+int test_cam1(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
-	img_buff_1[0] = 0x000000ff;
-
-	img_buff_1[799] = 0x000000ff;
-
-	img_buff_1[239199] = 0x000000ff;
-
-	img_buff_1[239999] = 0x000000ff;
-
-	img_buff_1[479199] = 0x000000ff;
-	img_buff_1[479198] = 0x000000ff;
-	img_buff_1[479197] = 0x000000ff;
-	img_buff_1[479196] = 0x000000ff;
-
-	img_buff_1[479999] = 0x000000ff;
-	img_buff_1[479998] = 0x000000ff;
-	img_buff_1[479997] = 0x000000ff;
-	img_buff_1[479996] = 0x000000ff;
-
-	
+	shell_print(shell, "Displaying image from camera 1");
 	hdmi_out0_core_initiator_base_write(&img_buff_1);
+}
+
+int test_cam2(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(1);
+	shell_print(shell, "Displaying image from camera 2");
+	hdmi_out0_core_initiator_base_write(&img_buff_2);
 }
 
 int test_video(const struct shell *shell, size_t argc, char **argv)
@@ -728,10 +717,10 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 
 SHELL_CMD_REGISTER(ov2640, &sub_ov2640, "\tov2640 commands", NULL);
 
-
 SHELL_STATIC_SUBCMD_SET_CREATE(
-	sub_display, SHELL_CMD_ARG(test_colors, NULL, NULL, test_display, 1, 0),
-	SHELL_CMD_ARG(test_image, NULL, NULL, test_image, 1, 0),
+	sub_display, SHELL_CMD_ARG(test_display_colors, NULL, NULL, test_display_colors, 1, 0),
+	SHELL_CMD_ARG(test_cam1, NULL, NULL, test_cam1, 1, 0),
+	SHELL_CMD_ARG(test_cam2, NULL, NULL, test_cam2, 1, 0),
 	SHELL_CMD_ARG(test_video, NULL, NULL, test_video, 1, 0),
 	SHELL_CMD_ARG(set_resolution, NULL,
 					    "Resolutions:\n"
