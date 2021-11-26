@@ -34,7 +34,7 @@ uint32_t image_with_text[1600 * 1200];
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
 #define BUFFER_ADDR 0x200000
-#define GEN_PURPOSE_1   		(*(volatile uint32_t *)(0xf000388c))
+
 struct video_timing vt1920x1080_60Hz = {
 	.pixel_clock = 14850,
 
