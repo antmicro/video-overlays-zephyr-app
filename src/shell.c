@@ -21,12 +21,12 @@ extern const struct device* ov2640_dev_1;
 extern const struct device* ov2640_dev_2;
 extern const struct device* fastvdma_dev_1;
 extern const struct device* fastvdma_dev_2;
-extern uint32_t img_buff_1[1600 * 1200];
-extern uint32_t img_buff_2[1600 * 1200];
-extern uint32_t img_buff_3[1600 * 1200];
-extern uint32_t img_buff_4[1600 * 1200];
-extern uint32_t img_buff_5[1600 * 1200];
-extern uint32_t img_buff_6[1600 * 1200];
+extern uint32_t img_buff_1[800 * 600];
+extern uint32_t img_buff_2[800 * 600];
+extern uint32_t img_buff_3[800 * 600];
+extern uint32_t img_buff_4[800 * 600];
+extern uint32_t img_buff_5[800 * 600];
+extern uint32_t img_buff_6[800 * 600];
 extern uint32_t img_length_1;
 extern uint32_t img_length_2;
 extern struct video_format fmt_1;
@@ -34,7 +34,7 @@ extern struct video_format fmt_2;
 extern struct video_caps caps;
 extern struct dma_config dma_cfg;
 extern struct dma_block_config dma_block_cfg;
-uint32_t image_with_text[1600 * 1200];
+uint32_t image_with_text[800 * 600];
 
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
@@ -731,9 +731,9 @@ int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 	char *text = "2021-11-25 10:00";
 
 	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
-	k_msleep(10);
+	k_msleep(100);
 	blend_images(image_with_text, img_buff_2, img_buff_4);
-	// k_msleep(100);
+	k_msleep(100);
 
 	while(1){
 		flush_l2_cache();
@@ -745,9 +745,9 @@ int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 		while(stat.busy != 0){
 			dma_get_status(fastvdma_dev_1, 0, &stat);
 		}
-		// k_msleep(100);
+		k_msleep(100);
 		blend_images(image_with_text, img_buff_1, img_buff_5);
-		// k_msleep(100);
+		k_msleep(100);
 		hdmi_out0_core_initiator_base_write(&img_buff_4);
 		k_msleep(10);
 		flush_l2_cache();
@@ -759,9 +759,9 @@ int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 		while(stat.busy != 0){
 			dma_get_status(fastvdma_dev_1, 0, &stat);
 		}
-		// k_msleep(100);
+		k_msleep(100);
 		blend_images(image_with_text, img_buff_3, img_buff_6);
-		// k_msleep(100);
+		k_msleep(100);
 		hdmi_out0_core_initiator_base_write(&img_buff_5);
 		k_msleep(10);
 		flush_l2_cache();
@@ -773,9 +773,9 @@ int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 		while(stat.busy != 0){
 			dma_get_status(fastvdma_dev_1, 0, &stat);
 		}
-		// k_msleep(100);
+		k_msleep(100);
 		blend_images(image_with_text, img_buff_2, img_buff_4);
-		// k_msleep(100);
+		k_msleep(100);
 		hdmi_out0_core_initiator_base_write(&img_buff_6);
 		k_msleep(10);
 	}
