@@ -14,6 +14,7 @@
 #include <drivers/gpio.h>
 
 #include "net.h"
+#include "init.h"
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
@@ -22,6 +23,9 @@ LOG_MODULE_REGISTER(app);
 #define OV2640_2 "OV2640_2"
 #define FASTVDMA_1 "FASTVDMA_1"
 #define FASTVDMA_2 "FASTVDMA_2"
+#define FASTVDMA_GPU_IN_1 "FASTVDMA_GPU_IN_1"
+#define FASTVDMA_GPU_IN_2 "FASTVDMA_GPU_IN_2"
+#define FASTVDMA_GPU_OUT "FASTVDMA_GPU_OUT"
 #define GPIO_EXPANDER "PCA9500_GPIO"
 
 #define MY_STACK_SIZE 500
@@ -29,8 +33,11 @@ LOG_MODULE_REGISTER(app);
 
 const struct device* ov2640_dev_1;
 const struct device* ov2640_dev_2;
-const struct device* fastvdma_dev_1;
-const struct device* fastvdma_dev_2;
+const struct device* fastvdma_dev_cam_1;
+const struct device* fastvdma_dev_cam_2;
+const struct device* fastvdma_dev_gpu_in_1;
+const struct device* fastvdma_dev_gpu_in_2;
+const struct device* fastvdma_dev_gpu_out;
 const struct device* gpio_expander;
 
 uint32_t img_buff_1[800 * 600];
@@ -74,29 +81,6 @@ K_THREAD_DEFINE(my_tid, MY_STACK_SIZE,
                 led_chaser, NULL, NULL, NULL,
                 MY_PRIORITY, 0, 0);
 
-void dma_user_callback(const struct device *dma_dev, void *arg,
-			      uint32_t id, int error_code)
-{
-	printf("Capture finished\n");
-}
-
-void dma_init() {
-	dma_cfg.channel_direction = PERIPHERAL_TO_MEMORY;
-	dma_cfg.head_block = &dma_block_cfg;
-	dma_cfg.dma_callback = dma_user_callback;
-	dma_cfg.user_data = NULL;
-
-	/* from memory to peripheral (0) */
-	dma_block_cfg.source_address = 0;
-
-	/* set image height */
-	dma_block_cfg.source_gather_count = 600;
-	dma_block_cfg.dest_scatter_count = 600;
-
-	/*set block size, driver will get image width from that */
-	dma_block_cfg.block_size = 800 * 600;
-}
-
 void print_camera_caps(const struct device *dev) {
 	if (video_get_caps(dev, VIDEO_EP_OUT, &caps)) {
 		printf("Unable to retrieve video capabilities");
@@ -137,8 +121,11 @@ void main(void)
 {
 	ov2640_dev_1 = device_get_binding(OV2640_1);
 	ov2640_dev_2 = device_get_binding(OV2640_2);
-	fastvdma_dev_1 = device_get_binding(FASTVDMA_1);
-	fastvdma_dev_2 = device_get_binding(FASTVDMA_2);
+	fastvdma_dev_cam_1 = device_get_binding(FASTVDMA_1);
+	fastvdma_dev_cam_2 = device_get_binding(FASTVDMA_2);
+	fastvdma_dev_gpu_in_1 = device_get_binding(FASTVDMA_GPU_IN_1);
+	fastvdma_dev_gpu_in_2 = device_get_binding(FASTVDMA_GPU_IN_2);
+	fastvdma_dev_gpu_out = device_get_binding(FASTVDMA_GPU_OUT);
 	gpio_expander = device_get_binding(GPIO_EXPANDER);
 
 	if (ov2640_dev_1 == NULL || ov2640_dev_2 == NULL) {
@@ -146,17 +133,21 @@ void main(void)
 		return;
 	}
 
-	if (fastvdma_dev_1 == NULL || fastvdma_dev_2 == NULL) {
+	if (fastvdma_dev_cam_1 == NULL || fastvdma_dev_cam_2 == NULL) {
         printf("fastvdma binding failed.\n");
 		return;
 	}
 
-	dma_init();
+	if (fastvdma_dev_gpu_in_1 == NULL || fastvdma_dev_gpu_in_2 == NULL ||
+											fastvdma_dev_gpu_out == NULL) {
+        printf("GPU fastvdma binding failed.\n");
+		return;
+	}
 
-	dma_block_cfg.dest_address = &img_buff_1; 
-	dma_config(fastvdma_dev_1, 0, &dma_cfg);
-	dma_block_cfg.dest_address = &img_buff_2; 
-	dma_config(fastvdma_dev_2, 0, &dma_cfg);
+	/* Initialize all 5 DMAs */
+	dma_init_cams();
+	dma_init_gpu_inputs();
+	dma_init_gpu_output();
 
 	print_camera_caps(ov2640_dev_1);
 	print_camera_caps(ov2640_dev_2);

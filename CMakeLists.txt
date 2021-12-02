@@ -4,6 +4,6 @@ cmake_minimum_required(VERSION 3.13.1)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(fastvdma-driver-test)
 
-FILE(GLOB app_sources src/net.c src/shell.c src/initiator.c src/dma.c  src/img_gen.c src/mmcm.c src/pattern.c src/reg.c src/time.c src/main.c)
+FILE(GLOB app_sources src/init.c src/net.c src/shell.c src/initiator.c src/img_gen.c src/mmcm.c src/pattern.c src/reg.c src/time.c src/main.c)
 
 target_sources(app PRIVATE ${app_sources})
