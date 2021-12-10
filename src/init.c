@@ -5,6 +5,7 @@ extern const struct device* fastvdma_dev_cam_2;
 extern const struct device* fastvdma_dev_gpu_in_1;
 extern const struct device* fastvdma_dev_gpu_in_2;
 extern const struct device* fastvdma_dev_gpu_out;
+extern const struct device* litevideo_dma;
 extern struct dma_config dma_cfg;
 extern struct dma_block_config dma_block_cfg;
 extern uint32_t img_buff_1[800 * 600];
@@ -26,6 +27,21 @@ void gpu_out_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
 	printf("GPU output transfer finished\n");
+}
+
+void litevideo_dma_user_callback(const struct device *dma_dev, void *arg,
+			      uint32_t id, int error_code)
+{
+	printf("HDMI transfer finished\n");
+}
+
+
+void litevideo_dma_init()
+{
+	dma_cfg.dma_callback = litevideo_dma_user_callback;
+	dma_cfg.user_data = NULL;
+
+	dma_config(litevideo_dma, 0, &dma_cfg);
 }
 
 void dma_init_cams() {

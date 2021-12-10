@@ -27,6 +27,7 @@ LOG_MODULE_REGISTER(app);
 #define FASTVDMA_GPU_IN_2 "FASTVDMA_GPU_IN_2"
 #define FASTVDMA_GPU_OUT "FASTVDMA_GPU_OUT"
 #define GPIO_EXPANDER "PCA9500_GPIO"
+#define LITEVIDEO_DMA0 "LITEVIDEO_DMA0"
 
 #define MY_STACK_SIZE 500
 #define MY_PRIORITY 5
@@ -39,6 +40,8 @@ const struct device* fastvdma_dev_gpu_in_1;
 const struct device* fastvdma_dev_gpu_in_2;
 const struct device* fastvdma_dev_gpu_out;
 const struct device* gpio_expander;
+
+const struct device* litevideo_dma;
 
 uint32_t img_buff_1[800 * 600];
 uint32_t img_buff_2[800 * 600];
@@ -126,6 +129,7 @@ void main(void)
 	fastvdma_dev_gpu_in_1 = device_get_binding(FASTVDMA_GPU_IN_1);
 	fastvdma_dev_gpu_in_2 = device_get_binding(FASTVDMA_GPU_IN_2);
 	fastvdma_dev_gpu_out = device_get_binding(FASTVDMA_GPU_OUT);
+	litevideo_dma = device_get_binding(LITEVIDEO_DMA0);
 	gpio_expander = device_get_binding(GPIO_EXPANDER);
 
 	if (ov2640_dev_1 == NULL || ov2640_dev_2 == NULL) {
@@ -144,10 +148,16 @@ void main(void)
 		return;
 	}
 
+	if (litevideo_dma == NULL ) {
+        printf("litevideo_dma binding failed.\n");
+		return;
+	}
+
 	/* Initialize all 5 DMAs */
 	dma_init_cams();
 	dma_init_gpu_inputs();
 	dma_init_gpu_output();
+	litevideo_dma_init();
 
 	print_camera_caps(ov2640_dev_1);
 	print_camera_caps(ov2640_dev_2);
