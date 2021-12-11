@@ -33,8 +33,14 @@ extern uint32_t img_length_2;
 extern struct video_format fmt_1;
 extern struct video_format fmt_2;
 extern struct video_caps caps;
-extern struct dma_config dma_cfg;
-extern struct dma_block_config dma_block_cfg;
+extern struct dma_config dma_cfg_cam;
+extern struct dma_config dma_cfg_gpu_in;
+extern struct dma_config dma_cfg_gpu_out;
+extern struct dma_config dma_cfg_litevideo;
+extern struct dma_block_config dma_block_cfg_cam;
+extern struct dma_block_config dma_block_cfg_gpu_in;
+extern struct dma_block_config dma_block_cfg_gpu_out;
+extern struct dma_block_config dma_block_cfg_litevideo;
 uint32_t image_with_text[800 * 600];
 
 #define CONFIG_L2_SIZE 8192
@@ -452,15 +458,17 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 				img_length_2 = atoi(argv[1]) * atoi(argv[2]);
 				
 				/* set image height */
-				dma_block_cfg.source_gather_count = atoi(argv[2]);
-				dma_block_cfg.dest_scatter_count = atoi(argv[2]);
+				dma_block_cfg_cam.source_gather_count = atoi(argv[2]);
+				dma_block_cfg_cam.dest_scatter_count = atoi(argv[2]);
 
 				/*set block size, driver will get image width from that */
-				dma_block_cfg.block_size = atoi(argv[1]) * atoi(argv[2]);
-				dma_block_cfg.dest_address = &img_buff_1;
-				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
-				dma_block_cfg.dest_address = &img_buff_2;
-				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg);
+				dma_block_cfg_cam.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg_cam.source_address = 0;
+				dma_block_cfg_cam.dest_address = &img_buff_1;
+				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+				dma_block_cfg_cam.source_address = 0;
+				dma_block_cfg_cam.dest_address = &img_buff_2;
+				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam);
 			}
 			i++;
 		}
@@ -476,13 +484,14 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 				img_length_1 = atoi(argv[1]) * atoi(argv[2]);
 				
 				/* set image height */
-				dma_block_cfg.source_gather_count = atoi(argv[2]);
-				dma_block_cfg.dest_scatter_count = atoi(argv[2]);
+				dma_block_cfg_cam.source_gather_count = atoi(argv[2]);
+				dma_block_cfg_cam.dest_scatter_count = atoi(argv[2]);
 
 				/*set block size, driver will get image width from that */
-				dma_block_cfg.block_size = atoi(argv[1]) * atoi(argv[2]);
-				dma_block_cfg.dest_address = &img_buff_1;
-				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+				dma_block_cfg_cam.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg_cam.source_address = 0;
+				dma_block_cfg_cam.dest_address = &img_buff_1;
+				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 			}
 			i++;
 		}
@@ -497,13 +506,14 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 				img_length_2 = atoi(argv[1]) * atoi(argv[2]);
 				
 				/* set image height */
-				dma_block_cfg.source_gather_count = atoi(argv[2]);
-				dma_block_cfg.dest_scatter_count = atoi(argv[2]);
+				dma_block_cfg_cam.source_gather_count = atoi(argv[2]);
+				dma_block_cfg_cam.dest_scatter_count = atoi(argv[2]);
 
 				/*set block size, driver will get image width from that */
-				dma_block_cfg.block_size = atoi(argv[1]) * atoi(argv[2]);
-				dma_block_cfg.dest_address = &img_buff_2;
-				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg);
+				dma_block_cfg_cam.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg_cam.source_address = 0;
+				dma_block_cfg_cam.dest_address = &img_buff_2;
+				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam);
 			}
 			i++;
 		}
@@ -665,15 +675,15 @@ int test_video(const struct shell *shell, size_t argc, char **argv)
 	hdmi_out0_core_initiator_enable_write(1);
 
 	flush_l2_cache();
-	dma_block_cfg.dest_address = &img_buff_2;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+	dma_block_cfg_cam.dest_address = &img_buff_2;
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 	dma_start(fastvdma_dev_cam_1, 0);
 	struct dma_status stat;
 
 	while(1){
 		flush_l2_cache();
-		dma_block_cfg.dest_address = &img_buff_1;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+		dma_block_cfg_cam.dest_address = &img_buff_1;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -683,8 +693,8 @@ int test_video(const struct shell *shell, size_t argc, char **argv)
 		hdmi_out0_core_initiator_base_write(&img_buff_2);
 		k_msleep(10);
 		flush_l2_cache();
-		dma_block_cfg.dest_address = &img_buff_3;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+		dma_block_cfg_cam.dest_address = &img_buff_3;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -694,8 +704,8 @@ int test_video(const struct shell *shell, size_t argc, char **argv)
 		hdmi_out0_core_initiator_base_write(&img_buff_1);
 		k_msleep(10);
 		flush_l2_cache();
-		dma_block_cfg.dest_address = &img_buff_2;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+		dma_block_cfg_cam.dest_address = &img_buff_2;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 	    dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -720,13 +730,13 @@ static int cmd_generate_image_with_text(const struct shell *shell, size_t argc,
 	return 0;
 }
 
-int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
+static int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
 
 	flush_l2_cache();
-	dma_block_cfg.dest_address = &img_buff_2;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+	dma_block_cfg_cam.dest_address = &img_buff_2;
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 	dma_start(fastvdma_dev_cam_1, 0);
 	struct dma_status stat;
 	char *text = "2021-11-25 10:00";
@@ -738,8 +748,9 @@ int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 
 	while(1){
 		flush_l2_cache();
-		dma_block_cfg.dest_address = &img_buff_1;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+		dma_block_cfg_cam.source_address = 0;
+		dma_block_cfg_cam.dest_address = &img_buff_1;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -752,8 +763,9 @@ int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 		hdmi_out0_core_initiator_base_write(&img_buff_4);
 		k_msleep(10);
 		flush_l2_cache();
-		dma_block_cfg.dest_address = &img_buff_3;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+		dma_block_cfg_cam.source_address = 0;
+		dma_block_cfg_cam.dest_address = &img_buff_3;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -766,8 +778,8 @@ int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 		hdmi_out0_core_initiator_base_write(&img_buff_5);
 		k_msleep(10);
 		flush_l2_cache();
-		dma_block_cfg.dest_address = &img_buff_2;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg);
+		dma_block_cfg_cam.dest_address = &img_buff_2;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 	    dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -782,6 +794,20 @@ int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
 	}
 }
 
+static int single_blender_test(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(1);
+
+	flush_l2_cache();
+	dma_block_cfg_cam.dest_address = &img_buff_1;
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+	dma_start(fastvdma_dev_cam_1, 0);
+	struct dma_status stat;
+	char *text = "2021-11-25 10:00";
+	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
+	blend_images(image_with_text, img_buff_1, img_buff_2);
+}
+
 void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
 {
 	struct dma_status status_gpu_in_1;
@@ -789,12 +815,15 @@ void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
 	struct dma_status status_gpu_out;
 
 	/* Configure DMAs */
-	dma_block_cfg.dest_address = &read_addr1;
-	dma_config(fastvdma_dev_gpu_in_1, 0, &dma_cfg);
-	dma_block_cfg.dest_address = &read_addr2;
-	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg);
-	dma_block_cfg.dest_address = &write_addr;
-	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg);
+	dma_block_cfg_gpu_in.source_address = &read_addr1;
+	dma_block_cfg_gpu_in.dest_address = 0;
+	dma_config(fastvdma_dev_gpu_in_1, 0, &dma_cfg_gpu_in);
+	dma_block_cfg_gpu_in.source_address = &read_addr2;
+	dma_block_cfg_gpu_in.dest_address = 0;
+	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
+	dma_block_cfg_gpu_out.source_address = 0;
+	dma_block_cfg_gpu_out.dest_address = &write_addr;
+	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg_gpu_out);
 
 	/* Start GPU */
 	GPU->CR = GPU_CR_ALPHA_BLENDER;
@@ -803,16 +832,6 @@ void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
 	dma_start(fastvdma_dev_gpu_in_1, 0);
 	dma_start(fastvdma_dev_gpu_in_2, 0);
 	dma_start(fastvdma_dev_gpu_out, 0);
-
-	/* Wait for GPU to finish */
-	do {
-		dma_get_status(fastvdma_dev_gpu_in_1, 0, &status_gpu_in_1);
-		dma_get_status(fastvdma_dev_gpu_in_2, 0, &status_gpu_in_2);
-		dma_get_status(fastvdma_dev_gpu_out,  0, &status_gpu_out);
-		printf("Input 1 status: %d\n",  status_gpu_in_1.busy);
-		printf("Input 2 status: %d\n",  status_gpu_in_2.busy);
-		printf("Output status: %d\n\n", status_gpu_out.busy);
-	} while(status_gpu_in_1.busy | status_gpu_in_2.busy | status_gpu_out.busy);
 
 	printf("Blending finished\n");
 }
@@ -849,6 +868,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_CMD_ARG(test_cam2, NULL, NULL, test_cam2, 1, 0),
 	SHELL_CMD_ARG(test_video, NULL, NULL, test_video, 1, 0),
 	SHELL_CMD_ARG(test_video_with_blender, NULL, NULL, test_video_with_blender, 1, 0),
+	SHELL_CMD_ARG(single_blender_test, NULL, NULL, single_blender_test, 1, 0),
 	SHELL_CMD_ARG(set_resolution, NULL,
 					    "Resolutions:\n"
 					    "1920x1080_60Hz\t"
