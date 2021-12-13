@@ -27,7 +27,7 @@ LOG_MODULE_REGISTER(app);
 #define FASTVDMA_GPU_IN_2 "FASTVDMA_GPU_IN_2"
 #define FASTVDMA_GPU_OUT "FASTVDMA_GPU_OUT"
 #define GPIO_EXPANDER "PCA9500_GPIO"
-#define litevideo_dma0 "litevideo_dma0"
+#define LITEVIDEO_DMA "LITEVIDEO_DMA0"
 
 #define MY_STACK_SIZE 500
 #define MY_PRIORITY 5
@@ -135,7 +135,7 @@ void main(void)
 	fastvdma_dev_gpu_in_1 = device_get_binding(FASTVDMA_GPU_IN_1);
 	fastvdma_dev_gpu_in_2 = device_get_binding(FASTVDMA_GPU_IN_2);
 	fastvdma_dev_gpu_out = device_get_binding(FASTVDMA_GPU_OUT);
-	litevideo_dev = device_get_binding(litevideo_dma0);
+	litevideo_dev = device_get_binding(LITEVIDEO_DMA);
 	gpio_expander = device_get_binding(GPIO_EXPANDER);
 
 	if (ov2640_dev_1 == NULL || ov2640_dev_2 == NULL) {
