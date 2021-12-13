@@ -815,14 +815,14 @@ void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
 	struct dma_status status_gpu_out;
 
 	/* Configure DMAs */
-	dma_block_cfg_gpu_in.source_address = &read_addr1;
+	dma_block_cfg_gpu_in.source_address = read_addr1;
 	dma_block_cfg_gpu_in.dest_address = 0;
 	dma_config(fastvdma_dev_gpu_in_1, 0, &dma_cfg_gpu_in);
-	dma_block_cfg_gpu_in.source_address = &read_addr2;
+	dma_block_cfg_gpu_in.source_address = read_addr2;
 	dma_block_cfg_gpu_in.dest_address = 0;
 	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
 	dma_block_cfg_gpu_out.source_address = 0;
-	dma_block_cfg_gpu_out.dest_address = &write_addr;
+	dma_block_cfg_gpu_out.dest_address = write_addr;
 	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg_gpu_out);
 
 	/* Start GPU */
