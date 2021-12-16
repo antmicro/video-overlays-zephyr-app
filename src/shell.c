@@ -806,6 +806,7 @@ static int single_blender_test(const struct shell *shell, size_t argc, char **ar
 	char *text = "2021-11-25 10:00";
 	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
 	blend_images(image_with_text, img_buff_1, img_buff_2);
+	hdmi_out0_core_initiator_base_write(&img_buff_2);
 }
 
 void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
