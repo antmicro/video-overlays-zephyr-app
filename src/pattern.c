@@ -11,17 +11,6 @@ static const unsigned int color_bar[8] = {
 	RGB_BLACK,
 };
 
-static const unsigned int color_bar2[8] = {
-	RGB_YELLOW,
-	RGB_PURPLE,
-	RGB_CYAN,
-	RGB_BLACK,
-	RGB_GREEN,
-	RGB_BLUE,
-	RGB_WHITE,
-	RGB_RED,
-};
-
 static int inc_color(int color)
 {
 	color++;

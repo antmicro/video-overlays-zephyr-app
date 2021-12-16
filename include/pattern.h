@@ -15,4 +15,6 @@
 #define RGB_BLUE   0x00ff0000
 #define RGB_BLACK  0x00000000
 void draw_pattern(int h_active, int v_active);
+void draw_color(int h_active, int v_active, int color);
+void draw_color2(int h_active, int v_active, int color);
 void draw_image(int h_active, int v_active);

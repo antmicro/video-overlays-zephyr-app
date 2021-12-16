@@ -60,6 +60,21 @@ struct dma_block_config dma_block_cfg_cam = {0};
 struct dma_block_config dma_block_cfg_gpu_in = {0};
 struct dma_block_config dma_block_cfg_gpu_out = {0};
 
+/* Implement function to flush cache memory for DMA */
+#define CONFIG_L2_SIZE 8192
+#define MAIN_RAM_BASE 0x40000000L
+
+void flush_l2_cache(void)
+{
+#ifdef CONFIG_L2_SIZE
+	unsigned int i;
+	for(i=0;i<2*CONFIG_L2_SIZE/4;i++) {
+		((volatile unsigned int *) MAIN_RAM_BASE)[i];
+	}
+#endif
+}
+
+
 void led_chaser()
 {
 	int pin = 0;
@@ -111,7 +126,7 @@ int get_camera_fmt(const struct device *dev, struct video_format *fmt) {
 	/* Get default/native format - camera 1 */
 	if (video_get_format(dev, VIDEO_EP_OUT, fmt)) {
 		printf("Unable to retrieve video format");
-		return;
+		return -1;
 	}
 
 	printf("- Default format: %c%c%c%c %ux%u\n", (char)fmt->pixelformat,
@@ -119,6 +134,8 @@ int get_camera_fmt(const struct device *dev, struct video_format *fmt) {
 	       (char)(fmt->pixelformat >> 16),
 	       (char)(fmt->pixelformat >> 24),
 	       fmt->width, fmt->height);
+
+	return 0;
 }
 
 void main(void)

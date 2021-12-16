@@ -31,7 +31,9 @@
 #define CLOCKING_MMCM_DAT_REG_HI 	0x38a0L
 #define CLOCKING_MMCM_DAT_REG_LOW 	0x38a4L
 
+#ifndef CSR_BASE
 #define CSR_BASE 0xf0000000L
+#endif
 
 /* Default structure for HDMI timings */
 struct video_timing {

@@ -7,7 +7,9 @@ typedef struct {
 	uint8_t FILL_CLR_4;	/* offset 0x10*/
 } GPU_typedef;
 
+#ifndef CSR_BASE
 #define CSR_BASE	(0xf0000000L)
+#endif
 
 /* GPU */
 #define GPU_BASE	(CSR_BASE + 0x4000L)

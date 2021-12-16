@@ -22,15 +22,11 @@ extern struct video_caps caps;
 extern struct dma_config dma_cfg_cam;
 extern struct dma_config dma_cfg_gpu_in;
 extern struct dma_config dma_cfg_gpu_out;
-extern struct dma_config dma_cfg_litevideo;
 extern struct dma_block_config dma_block_cfg_cam;
 extern struct dma_block_config dma_block_cfg_gpu_in;
 extern struct dma_block_config dma_block_cfg_gpu_out;
-extern struct dma_block_config dma_block_cfg_litevideo;
 extern uint32_t image_with_text[800 * 600];
 
-#define CONFIG_L2_SIZE 8192
-#define MAIN_RAM_BASE 0x40000000L
 #define BUFFER_ADDR 0x200000
 
 #define IMG2_HEIGHT 800U
@@ -43,12 +39,4 @@ extern uint32_t image_with_text[800 * 600];
 #define IMG1_LINE IMG1_WIDTH * 4
 #define IMG1_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
 
-void flush_l2_cache(void)
-{
-#ifdef CONFIG_L2_SIZE
-	unsigned int i;
-	for(i=0;i<2*CONFIG_L2_SIZE/4;i++) {
-		((volatile unsigned int *) MAIN_RAM_BASE)[i];
-	}
-#endif
-}
+void flush_l2_cache(void);

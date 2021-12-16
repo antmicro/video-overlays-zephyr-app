@@ -5,57 +5,31 @@
 #include <drivers/video.h>
 #include <drivers/dma.h>
 #include <string.h>
+#include <net/socket.h>
 
-extern const struct device* ov2640_dev_1;
-extern const struct device* ov2640_dev_2;
-extern const struct device* fastvdma_dev_cam_1;
-extern const struct device* fastvdma_dev_cam_2;
-extern uint32_t img_buff_1[800 * 600];
-extern uint32_t img_buff_2[800 * 600];
-extern uint32_t img_buff_3[800 * 600];
-extern uint32_t img_buff_4[800 * 600];
-extern uint32_t img_buff_5[800 * 600];
-extern uint32_t img_buff_6[800 * 600];
-extern uint32_t img_length_1;
-extern uint32_t img_length_2;
-extern struct video_format fmt_1;
-extern struct video_format fmt_2;
-extern struct video_caps caps;
-extern struct dma_config dma_cfg_cam;
-extern struct dma_block_config dma_block_cfg_cam;
-
-#define CONFIG_L2_SIZE 8192
-#define MAIN_RAM_BASE 0x40000000L
-
-#define IMG2_HEIGHT 800U
-#define IMG2_WIDTH 600U
-#define IMG2_LINE IMG1_WIDTH * 4
-#define IMG2_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
-
-#define IMG1_HEIGHT 800U
-#define IMG1_WIDTH 600U
-#define IMG1_LINE IMG1_WIDTH * 4
-#define IMG1_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
+#include "net.h"
+#include "shell_tests.h"
 
 static int cmd_ov2640_set_brightness(const struct shell *shell, size_t argc,
 			      char **argv)
 {
 	int err = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set brightness to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1,
-			VIDEO_CID_CAMERA_BRIGHTNESS, atoi(argv[1]));
+			VIDEO_CID_CAMERA_BRIGHTNESS, &arg);
 		err |= video_set_ctrl(ov2640_dev_2,
-			VIDEO_CID_CAMERA_BRIGHTNESS, atoi(argv[1]));	
+			VIDEO_CID_CAMERA_BRIGHTNESS, &arg);	
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set brightness to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1,
-			VIDEO_CID_CAMERA_BRIGHTNESS, atoi(argv[1]));
+			VIDEO_CID_CAMERA_BRIGHTNESS, &arg);
 	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set brightness to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_2,
-			VIDEO_CID_CAMERA_BRIGHTNESS, atoi(argv[1]));
+			VIDEO_CID_CAMERA_BRIGHTNESS, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 	}
@@ -73,21 +47,22 @@ static int cmd_ov2640_set_saturation(const struct shell *shell, size_t argc,
 			      char **argv)
 {
 	int err = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set saturation to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1,
-			VIDEO_CID_CAMERA_SATURATION, atoi(argv[1]));
+			VIDEO_CID_CAMERA_SATURATION, &arg);
 		err |= video_set_ctrl(ov2640_dev_2,
-			VIDEO_CID_CAMERA_SATURATION, atoi(argv[1]));	
+			VIDEO_CID_CAMERA_SATURATION, &arg);	
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set saturation to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1,
-			VIDEO_CID_CAMERA_SATURATION, atoi(argv[1]));
+			VIDEO_CID_CAMERA_SATURATION, &arg);
 	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set saturation to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_2,
-			VIDEO_CID_CAMERA_SATURATION, atoi(argv[1]));
+			VIDEO_CID_CAMERA_SATURATION, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 	}
@@ -106,10 +81,10 @@ static int cmd_ov2640_set_output_format(const struct shell *shell, size_t argc,
 {
 	int err = 0;
 
-	if (argv[1] == "JPEG") {
+	if (strcmp(argv[1], "JPEG")) {
 		fmt_1.pixelformat = VIDEO_PIX_FMT_JPEG;
 		fmt_2.pixelformat = VIDEO_PIX_FMT_JPEG;
-	} else if (argv[1] == "RGB565") {
+	} else if (strcmp(argv[1], "RGB565")) {
 		fmt_1.pixelformat = VIDEO_PIX_FMT_RGB565;
 		fmt_2.pixelformat = VIDEO_PIX_FMT_RGB565;
 	} else {
@@ -142,19 +117,20 @@ static int cmd_ov2640_set_output_format(const struct shell *shell, size_t argc,
 static int cmd_ov2640_set_quality(const struct shell *shell, size_t argc, char **argv)
 {
 	int err = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set quality to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_QUALITY, atoi(argv[1]));
-		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_QUALITY, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_QUALITY, &arg);
+		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_QUALITY, &arg);
 	} 
 	else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set quality to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_QUALITY, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_QUALITY, &arg);
 	} 
 	else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set quality to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_QUALITY, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_QUALITY, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 	}
@@ -171,17 +147,18 @@ static int cmd_ov2640_set_quality(const struct shell *shell, size_t argc, char *
 static int cmd_ov2640_set_colorbar(const struct shell *shell, size_t argc, char **argv)
 {
 	int err = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set colorbar to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_COLORBAR, atoi(argv[1]));
-		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_COLORBAR, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_COLORBAR, &arg);
+		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_COLORBAR, &arg);
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set colorbar to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_COLORBAR, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_COLORBAR, &arg);
 	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set colorbar to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_COLORBAR, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_COLORBAR, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 	}
@@ -198,17 +175,18 @@ static int cmd_ov2640_set_colorbar(const struct shell *shell, size_t argc, char 
 static int cmd_ov2640_set_whitebal(const struct shell *shell, size_t argc, char **argv)
 {
 	int err = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set white balance to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_WHITE_BAL, atoi(argv[1]));
-		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_WHITE_BAL, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_WHITE_BAL, &arg);
+		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_WHITE_BAL, &arg);
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set white balance to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_WHITE_BAL, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_WHITE_BAL, &arg);
 	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set white balance to %s...", argv[1]);
-		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_WHITE_BAL, atoi(argv[1]));
+		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_WHITE_BAL, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 	}
@@ -225,17 +203,18 @@ static int cmd_ov2640_set_whitebal(const struct shell *shell, size_t argc, char 
 static int cmd_ov2640_set_gainctrl(const struct shell *shell, size_t argc, char **argv)
 {
 	int err = 0, ret = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set gain to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_GAIN, atoi(argv[1]));
-		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_GAIN, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_GAIN, &arg);
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_GAIN, &arg);
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set gain to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_GAIN, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_GAIN, &arg);
 	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set gain to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_GAIN, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_GAIN, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 		err = -1;
@@ -254,17 +233,18 @@ static int cmd_ov2640_set_exposurectrl(const struct shell *shell, size_t argc,
 				char **argv)
 {
 	int err = 0, ret = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set exposure to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_EXPOSURE, atoi(argv[1]));
-		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_EXPOSURE, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_EXPOSURE, &arg);
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_EXPOSURE, &arg);
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set exposure to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_EXPOSURE, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_EXPOSURE, &arg);
 	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set exposure to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_EXPOSURE, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_EXPOSURE, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 		err = -1;
@@ -283,17 +263,18 @@ static int cmd_ov2640_set_horizontal_mirror(const struct shell *shell, size_t ar
 				     char **argv)
 {
 	int err = 0, ret = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set horizontal mirror to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_HFLIP, atoi(argv[1]));
-		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_HFLIP, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_HFLIP, &arg);
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_HFLIP, &arg);
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set horizontal mirror to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_HFLIP, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_HFLIP, &arg);
 	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set horizontal mirror to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_HFLIP, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_HFLIP, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 		err = -1;
@@ -312,17 +293,18 @@ static int cmd_ov2640_set_vertical_flip(const struct shell *shell, size_t argc,
 				 char **argv)
 {
 	int err = 0, ret = 0;
+    int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set vertical flip to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_VFLIP, atoi(argv[1]));
-		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_VFLIP, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_VFLIP, &arg);
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_VFLIP, &arg);
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set vertical flip to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_VFLIP, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_VFLIP, &arg);
 	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set vertical flip to %s...", argv[1]);
-		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_VFLIP, atoi(argv[1]));
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_VFLIP, &arg);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 		err = -1;
@@ -342,30 +324,31 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 {
 	int err = 0, ret = 0;
 	int i = 0;
+    int width = atoi(argv[1]), height = atoi(argv[2]);
 
 	if (argc == 3 || (argc == 4 && !strcmp(argv[3], "both"))) {
 		shell_print(shell, "ov2640 (both) - set resolution to %sx%s...", argv[1], argv[2]);
 		while (caps.format_caps[i].pixelformat) {
 			const struct video_format_cap *fcap = &caps.format_caps[i];
-			if (fcap->width_min == atoi(argv[1]) && fcap->height_min == atoi(argv[2])) {
-				fmt_1.width = atoi(argv[1]);
-				fmt_1.height = atoi(argv[2]);
-				fmt_2.width = atoi(argv[1]);
-				fmt_2.height = atoi(argv[2]);
-				img_length_1 = atoi(argv[1]) * atoi(argv[2]);
-				img_length_2 = atoi(argv[1]) * atoi(argv[2]);
+			if (fcap->width_min == width && fcap->height_min == height) {
+				fmt_1.width = width;
+				fmt_1.height = height;
+				fmt_2.width = width;
+				fmt_2.height = height;
+				img_length_1 = width * height;
+				img_length_2 = width * height;
 				
 				/* set image height */
-				dma_block_cfg_cam.source_gather_count = atoi(argv[2]);
-				dma_block_cfg_cam.dest_scatter_count = atoi(argv[2]);
+				dma_block_cfg_cam.source_gather_count = height;
+				dma_block_cfg_cam.dest_scatter_count = height;
 
 				/*set block size, driver will get image width from that */
-				dma_block_cfg_cam.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg_cam.block_size = width * height;
 				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = &img_buff_1;
+				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = &img_buff_2;
+				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
 				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam);
 			}
 			i++;
@@ -376,19 +359,19 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 		shell_print(shell, "ov2640 (left) - set resolution to %sx%s...", argv[1], argv[2]);
 		while (caps.format_caps[i].pixelformat) {
 			const struct video_format_cap *fcap = &caps.format_caps[i];
-			if (fcap->width_min == atoi(argv[1]) && fcap->height_min == atoi(argv[2])) {
-				fmt_1.width = atoi(argv[1]);
-				fmt_1.height = atoi(argv[2]);
-				img_length_1 = atoi(argv[1]) * atoi(argv[2]);
+			if (fcap->width_min == width && fcap->height_min == height) {
+				fmt_1.width = width;
+				fmt_1.height = height;
+				img_length_1 = width * height;
 				
 				/* set image height */
-				dma_block_cfg_cam.source_gather_count = atoi(argv[2]);
-				dma_block_cfg_cam.dest_scatter_count = atoi(argv[2]);
+				dma_block_cfg_cam.source_gather_count = height;
+				dma_block_cfg_cam.dest_scatter_count = height;
 
 				/*set block size, driver will get image width from that */
-				dma_block_cfg_cam.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg_cam.block_size = width * height;
 				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = &img_buff_1;
+				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 			}
 			i++;
@@ -398,19 +381,19 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 		shell_print(shell, "ov2640 (right) - set resolution to %sx%s...", argv[1], argv[2]);
 		while (caps.format_caps[i].pixelformat) {
 			const struct video_format_cap *fcap = &caps.format_caps[i];
-			if (fcap->width_min == atoi(argv[1]) && fcap->height_min == atoi(argv[2])) {
-				fmt_2.width = atoi(argv[1]);
-				fmt_2.height = atoi(argv[2]);
-				img_length_2 = atoi(argv[1]) * atoi(argv[2]);
+			if (fcap->width_min == width && fcap->height_min == height) {
+				fmt_2.width = width;
+				fmt_2.height = width;
+				img_length_2 = width * height;
 				
 				/* set image height */
-				dma_block_cfg_cam.source_gather_count = atoi(argv[2]);
-				dma_block_cfg_cam.dest_scatter_count = atoi(argv[2]);
+				dma_block_cfg_cam.source_gather_count = height;
+				dma_block_cfg_cam.dest_scatter_count = height;
 
 				/*set block size, driver will get image width from that */
-				dma_block_cfg_cam.block_size = atoi(argv[1]) * atoi(argv[2]);
+				dma_block_cfg_cam.block_size = width * height;
 				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = &img_buff_2;
+				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
 				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam);
 			}
 			i++;
@@ -449,14 +432,14 @@ static int cmd_ov2640_send_image(const struct shell *shell, size_t argc,
 
 	if (argc == 1 || (argc == 2 && !strcmp(argv[1], "both"))) {
 		shell_print(shell, "ov2640 (both) - send image...");
-		send_image(&img_buff_1, img_length_1);
-		send_image(&img_buff_2, img_length_2);
+		send_image((uint32_t*)&img_buff_1, img_length_1);
+		send_image((uint32_t*)&img_buff_2, img_length_2);
 	} else if (!strcmp(argv[1], "left")) {
 		shell_print(shell, "ov2640 (left) - send image...");
-		send_image(&img_buff_1, img_length_1);
+		send_image((uint32_t*)&img_buff_1, img_length_1);
 	} else if (!strcmp(argv[1], "right")) {
 		shell_print(shell, "ov2640 (right) - send image...");
-		send_image(&img_buff_2, img_length_2);
+		send_image((uint32_t*)&img_buff_2, img_length_2);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 		err = -1;
