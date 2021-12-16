@@ -138,20 +138,20 @@ static int cmd_display_set_resolution_640x480_75Hz(const struct shell *shell, si
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_display_resolution,
-	SHELL_CMD_ARG(mode_1920x1080_60Hz, NULL, "\t1920x1080_60Hz", cmd_display_set_resolution_1920x1080_60Hz, 2, 0),
-	SHELL_CMD_ARG(mode_1280x720_60Hz,  NULL, "\t1280x720_60Hz",  cmd_display_set_resolution_1280x720_60Hz,  2, 0),
-	SHELL_CMD_ARG(mode_800x600_60Hz,   NULL, "\t800x600_60Hz",   cmd_display_set_resolution_800x600_60Hz,   2, 0),
-	SHELL_CMD_ARG(mode_640x480_75Hz,   NULL, "\t640x480_75Hz",   cmd_display_set_resolution_640x480_75Hz,   2, 0),
+	SHELL_CMD_ARG(mode_1920x1080_60Hz, NULL, "\t1920x1080_60Hz", cmd_display_set_resolution_1920x1080_60Hz, 1, 0),
+	SHELL_CMD_ARG(mode_1280x720_60Hz,  NULL, "\t1280x720_60Hz",  cmd_display_set_resolution_1280x720_60Hz,  1, 0),
+	SHELL_CMD_ARG(mode_800x600_60Hz,   NULL, "\t800x600_60Hz",   cmd_display_set_resolution_800x600_60Hz,   1, 0),
+	SHELL_CMD_ARG(mode_640x480_75Hz,   NULL, "\t640x480_75Hz",   cmd_display_set_resolution_640x480_75Hz,   1, 0),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_display,
-	SHELL_CMD_ARG(set_resolution, &sub_display_resolution,
+	SHELL_CMD(set_resolution, &sub_display_resolution,
 						"Resolutions:\n"
 						"1920x1080_60Hz\t"
 						"1280x720_60Hz\t"
 						"800x600_60Hz\t"
-						"640x480_75Hz\n", NULL, 2, 1),
+						"640x480_75Hz\n", NULL),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(display, &sub_display, "\tConfigure display", NULL);
