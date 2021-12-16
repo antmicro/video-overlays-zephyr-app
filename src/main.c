@@ -14,7 +14,6 @@
 #include <drivers/gpio.h>
 
 #include "net.h"
-#include "init.h"
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
@@ -27,7 +26,6 @@ LOG_MODULE_REGISTER(app);
 #define FASTVDMA_GPU_IN_2 "FASTVDMA_GPU_IN_2"
 #define FASTVDMA_GPU_OUT "FASTVDMA_GPU_OUT"
 #define GPIO_EXPANDER "PCA9500_GPIO"
-#define LITEVIDEO_DMA "LITEVIDEO_DMA0"
 
 #define MY_STACK_SIZE 500
 #define MY_PRIORITY 5
@@ -41,14 +39,13 @@ const struct device* fastvdma_dev_gpu_in_2;
 const struct device* fastvdma_dev_gpu_out;
 const struct device* gpio_expander;
 
-const struct device* litevideo_dev;
-
 uint32_t img_buff_1[800 * 600];
 uint32_t img_buff_2[800 * 600];
 uint32_t img_buff_3[800 * 600];
 uint32_t img_buff_4[800 * 600];
 uint32_t img_buff_5[800 * 600];
 uint32_t img_buff_6[800 * 600];
+uint32_t image_with_text[800 * 600];
 uint32_t img_length_1 = 800 * 600;
 uint32_t img_length_2 = 800 * 600;
 
@@ -59,11 +56,9 @@ struct video_caps caps;
 struct dma_config dma_cfg_cam = {0};
 struct dma_config dma_cfg_gpu_in = {0};
 struct dma_config dma_cfg_gpu_out = {0};
-struct dma_config dma_cfg_litevideo = {0};
 struct dma_block_config dma_block_cfg_cam = {0};
 struct dma_block_config dma_block_cfg_gpu_in = {0};
 struct dma_block_config dma_block_cfg_gpu_out = {0};
-struct dma_block_config dma_block_cfg_litevideo = {0};
 
 void led_chaser()
 {
@@ -135,7 +130,6 @@ void main(void)
 	fastvdma_dev_gpu_in_1 = device_get_binding(FASTVDMA_GPU_IN_1);
 	fastvdma_dev_gpu_in_2 = device_get_binding(FASTVDMA_GPU_IN_2);
 	fastvdma_dev_gpu_out = device_get_binding(FASTVDMA_GPU_OUT);
-	litevideo_dev = device_get_binding(LITEVIDEO_DMA);
 	gpio_expander = device_get_binding(GPIO_EXPANDER);
 
 	if (ov2640_dev_1 == NULL || ov2640_dev_2 == NULL) {
@@ -154,16 +148,10 @@ void main(void)
 		return;
 	}
 
-	if (litevideo_dev == NULL ) {
-        printf("litevideo_dev binding failed.\n");
-		return;
-	}
-
 	/* Initialize all 5 DMAs */
 	dma_init_cams();
 	dma_init_gpu_inputs();
 	dma_init_gpu_output();
-	litevideo_dma_init();
 
 	print_camera_caps(ov2640_dev_1);
 	print_camera_caps(ov2640_dev_2);

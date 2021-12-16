@@ -1,24 +1,25 @@
 #include "pattern.h"
 
 static const unsigned int color_bar[8] = { 
-	RGB_WHITE, 
-	RGB_YELLOW, 
-	RGB_CYAN, 
-	RGB_GREEN, 
-	RGB_PURPLE, 
+	RGB_WHITE,
+	RGB_YELLOW,
+	RGB_CYAN,
+	RGB_GREEN,
+	RGB_PURPLE,
 	RGB_RED,
-	RGB_BLUE, 
-	RGB_BLACK, };
+	RGB_BLUE,
+	RGB_BLACK,
+};
 
 static const unsigned int color_bar2[8] = {
-	RGB_YELLOW, 
-	RGB_PURPLE, 
-	RGB_CYAN, 
+	RGB_YELLOW,
+	RGB_PURPLE,
+	RGB_CYAN,
 	RGB_BLACK,
-	RGB_GREEN, 
-	RGB_BLUE, 
-	RGB_WHITE, 
-	RGB_RED, 
+	RGB_GREEN,
+	RGB_BLUE,
+	RGB_WHITE,
+	RGB_RED,
 };
 
 static int inc_color(int color)
@@ -77,4 +78,3 @@ void draw_image(int h_active, int v_active)
 			}
 	}
 }
-

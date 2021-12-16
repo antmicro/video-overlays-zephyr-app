@@ -2,26 +2,14 @@
 #include <device.h>
 #include <shell/shell.h>
 #include <stdlib.h>
-#include <net/socket.h>
 #include <drivers/video.h>
 #include <drivers/dma.h>
 #include <string.h>
-
-#include "pattern.h"
-#include "initiator.h"
-#include "mmcm.h"
-#include "time.h"
-#include "net.h"
-#include "img_gen.h"
-#include "gpu.h"
 
 extern const struct device* ov2640_dev_1;
 extern const struct device* ov2640_dev_2;
 extern const struct device* fastvdma_dev_cam_1;
 extern const struct device* fastvdma_dev_cam_2;
-extern const struct device* fastvdma_dev_gpu_in_1;
-extern const struct device* fastvdma_dev_gpu_in_2;
-extern const struct device* fastvdma_dev_gpu_out;
 extern uint32_t img_buff_1[800 * 600];
 extern uint32_t img_buff_2[800 * 600];
 extern uint32_t img_buff_3[800 * 600];
@@ -34,18 +22,10 @@ extern struct video_format fmt_1;
 extern struct video_format fmt_2;
 extern struct video_caps caps;
 extern struct dma_config dma_cfg_cam;
-extern struct dma_config dma_cfg_gpu_in;
-extern struct dma_config dma_cfg_gpu_out;
-extern struct dma_config dma_cfg_litevideo;
 extern struct dma_block_config dma_block_cfg_cam;
-extern struct dma_block_config dma_block_cfg_gpu_in;
-extern struct dma_block_config dma_block_cfg_gpu_out;
-extern struct dma_block_config dma_block_cfg_litevideo;
-uint32_t image_with_text[800 * 600];
 
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
-#define BUFFER_ADDR 0x200000
 
 #define IMG2_HEIGHT 800U
 #define IMG2_WIDTH 600U
@@ -56,88 +36,6 @@ uint32_t image_with_text[800 * 600];
 #define IMG1_WIDTH 600U
 #define IMG1_LINE IMG1_WIDTH * 4
 #define IMG1_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
-
-struct video_timing vt1920x1080_60Hz = {
-	.pixel_clock = 14850,
-
-	.h_active = 1920,
-	.h_blanking = 280,
-	.h_sync_offset = 88,
-	.h_sync_width = 44,
-
-	.v_active = 1080,
-	.v_blanking = 45,
-	.v_sync_offset = 4,
-	.v_sync_width = 5,
-};
-struct video_timing vt1280x720_60Hz = {
-
-	.pixel_clock = 7425,
-
-	.h_active = 1280,
-	.h_blanking = 370,
-	.h_sync_offset = 110,
-	.h_sync_width = 40,
-
-	.v_active = 720,
-	.v_blanking = 30,
-	.v_sync_offset = 5,
-	.v_sync_width = 5,
-};
-struct video_timing vt800x600_60Hz = {
-
-	.pixel_clock = 4000,
-
-	.h_active = 800,
-	.h_blanking = 256,
-	.h_sync_offset = 40,
-	.h_sync_width = 128,
-
-	.v_active = 600,
-	.v_blanking = 28,
-	.v_sync_offset = 1,
-	.v_sync_width = 4,
-};
-struct video_timing vt640x480_75Hz = {
-
-	.pixel_clock = 3150,
-
-	.h_active = 640,     
-	.h_blanking = 200, 
-	.h_sync_offset = 16, 
-	.h_sync_width = 64,
-
-	.v_active = 480,     
-	.v_blanking = 20,	
-	.v_sync_offset = 1,  
-	.v_sync_width = 3,
-};
-struct video_timing vt640x480_60Hz = {
-
-	.pixel_clock = 2517,
-
-	.h_active = 640,     
-	.h_blanking = 160, 
-	.h_sync_offset = 16, 
-	.h_sync_width = 96,
-
-	.v_active = 480,     
-	.v_blanking = 45,	
-	.v_sync_offset = 10,  
-	.v_sync_width = 2,
-
-};
-
-
-void flush_l2_cache(void)
-{
-#ifdef CONFIG_L2_SIZE
-	unsigned int i;
-	for(i=0;i<2*CONFIG_L2_SIZE/4;i++) {
-		((volatile unsigned int *) MAIN_RAM_BASE)[i];
-	}
-#endif
-}
 
 static int cmd_ov2640_set_brightness(const struct shell *shell, size_t argc,
 			      char **argv)
@@ -523,13 +421,13 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 		err = -1;
 	}
 
-	printf(" - (OV2640_1) Current format: %c%c%c%c %ux%u\n", (char)fmt_1.pixelformat,
+	shell_print(shell, " - (OV2640_1) Current format: %c%c%c%c %ux%u\n", (char)fmt_1.pixelformat,
 	       (char)(fmt_1.pixelformat >> 8),
 	       (char)(fmt_1.pixelformat >> 16),
 	       (char)(fmt_1.pixelformat >> 24),
 	       fmt_1.width, fmt_1.height);
 
-	printf(" - (OV2640_2) Current format: %c%c%c%c %ux%u\n", (char)fmt_2.pixelformat,
+	shell_print(shell, " - (OV2640_2) Current format: %c%c%c%c %ux%u\n", (char)fmt_2.pixelformat,
 	       (char)(fmt_2.pixelformat >> 8),
 	       (char)(fmt_2.pixelformat >> 16),
 	       (char)(fmt_2.pixelformat >> 24),
@@ -604,239 +502,6 @@ static int cmd_ov2640_capture(const struct shell *shell, size_t argc,
 	return err | ret;
 }
 
-int set_resolution(const struct shell *shell, size_t argc, char **argv)
-{
-	hdmi_out0_core_initiator_enable_write(0);
-	hdmi_out0_driver_clocking_mmcm_reset_write(1);
-	if(strcmp(argv[1], "1920x1080_60Hz") == 0){
-		timings_write(&vt1920x1080_60Hz);	
-	}
-	else if (strcmp(argv[1], "1280x720_60Hz") == 0){
-		timings_write(&vt1280x720_60Hz);	
-	}
-	else if (strcmp(argv[1], "800x600_60Hz") == 0){
-		timings_write(&vt800x600_60Hz);	
-	}
-	else if (strcmp(argv[1], "640x480_75Hz") == 0){
-		timings_write(&vt640x480_75Hz);	
-	}
-	else if (strcmp(argv[1], "640x480_60Hz") == 0){
-		timings_write(&vt640x480_60Hz);	
-	}
-	else {
-		shell_print(shell, "\nUnsupported resolution!\n");
-		return 0;
-	}
-	hdmi_out0_driver_clocking_mmcm_reset_write(0);
-
-	shell_print(shell, "\nResoluton set!\n");
-    return 0;
-}
-
-int test_display_colors(const struct shell *shell, size_t argc, char **argv)
-{
-	hdmi_out0_core_initiator_enable_write(1);
-	draw_color(640, 480, RGB_RED);
-	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
-	k_msleep(1000);
-	draw_color(640, 480, RGB_GREEN);
-	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
-	k_msleep(1000);
-	draw_color(640, 480, RGB_BLUE);
-	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
-	k_msleep(1000);
-	draw_color(640, 480, RGB_TEST);
-	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
-	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
-    return 0;
-}
-
-int test_cam1(const struct shell *shell, size_t argc, char **argv)
-{
-	hdmi_out0_core_initiator_enable_write(1);
-	shell_print(shell, "Displaying image from camera 1");
-	hdmi_out0_core_initiator_base_write(&img_buff_1);
-}
-
-int test_cam2(const struct shell *shell, size_t argc, char **argv)
-{
-	hdmi_out0_core_initiator_enable_write(1);
-	shell_print(shell, "Displaying image from camera 2");
-	hdmi_out0_core_initiator_base_write(&img_buff_2);
-}
-
-int test_video(const struct shell *shell, size_t argc, char **argv)
-{
-	hdmi_out0_core_initiator_enable_write(1);
-
-	flush_l2_cache();
-	dma_block_cfg_cam.dest_address = &img_buff_2;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-	dma_start(fastvdma_dev_cam_1, 0);
-	struct dma_status stat;
-
-	while(1){
-		flush_l2_cache();
-		dma_block_cfg_cam.dest_address = &img_buff_1;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		hdmi_out0_core_initiator_base_write(&img_buff_2);
-		k_msleep(10);
-		flush_l2_cache();
-		dma_block_cfg_cam.dest_address = &img_buff_3;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		hdmi_out0_core_initiator_base_write(&img_buff_1);
-		k_msleep(10);
-		flush_l2_cache();
-		dma_block_cfg_cam.dest_address = &img_buff_2;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-	    dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		hdmi_out0_core_initiator_base_write(&img_buff_3);
-		k_msleep(10);
-	}
-}
-
-static int cmd_generate_image_with_text(const struct shell *shell, size_t argc,
-				char **argv)
-{
-	char *text = "2021-10-27 9:31";
-
-	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
-
-	shell_print(shell, "send generated image...");
-	send_image(&image_with_text, img_length_1);
-
-	return 0;
-}
-
-static int test_video_with_blender(const struct shell *shell, size_t argc, char **argv)
-{
-	hdmi_out0_core_initiator_enable_write(1);
-
-	flush_l2_cache();
-	dma_block_cfg_cam.dest_address = &img_buff_2;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-	dma_start(fastvdma_dev_cam_1, 0);
-	struct dma_status stat;
-	char *text = "2021-11-25 10:00";
-
-	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
-	k_msleep(100);
-	blend_images(image_with_text, img_buff_2, img_buff_4);
-	k_msleep(100);
-
-	while(1){
-		flush_l2_cache();
-		dma_block_cfg_cam.source_address = 0;
-		dma_block_cfg_cam.dest_address = &img_buff_1;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		k_msleep(100);
-		blend_images(image_with_text, img_buff_1, img_buff_5);
-		k_msleep(100);
-		hdmi_out0_core_initiator_base_write(&img_buff_4);
-		k_msleep(10);
-		flush_l2_cache();
-		dma_block_cfg_cam.source_address = 0;
-		dma_block_cfg_cam.dest_address = &img_buff_3;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		k_msleep(100);
-		blend_images(image_with_text, img_buff_3, img_buff_6);
-		k_msleep(100);
-		hdmi_out0_core_initiator_base_write(&img_buff_5);
-		k_msleep(10);
-		flush_l2_cache();
-		dma_block_cfg_cam.dest_address = &img_buff_2;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-	    dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		k_msleep(100);
-		blend_images(image_with_text, img_buff_2, img_buff_4);
-		k_msleep(100);
-		hdmi_out0_core_initiator_base_write(&img_buff_6);
-		k_msleep(10);
-	}
-}
-
-static int single_blender_test(const struct shell *shell, size_t argc, char **argv)
-{
-	hdmi_out0_core_initiator_enable_write(1);
-
-	flush_l2_cache();
-	dma_block_cfg_cam.dest_address = &img_buff_1;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-	dma_start(fastvdma_dev_cam_1, 0);
-	struct dma_status stat;
-	char *text = "2021-11-25 10:00";
-	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
-	blend_images(image_with_text, img_buff_1, img_buff_2);
-	hdmi_out0_core_initiator_base_write(&img_buff_2);
-}
-
-void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
-{
-	struct dma_status status_gpu_in_1;
-	struct dma_status status_gpu_in_2;
-	struct dma_status status_gpu_out;
-
-	/* Configure DMAs */
-	dma_block_cfg_gpu_in.source_address = read_addr1;
-	dma_block_cfg_gpu_in.dest_address = 0;
-	dma_config(fastvdma_dev_gpu_in_1, 0, &dma_cfg_gpu_in);
-	dma_block_cfg_gpu_in.source_address = read_addr2;
-	dma_block_cfg_gpu_in.dest_address = 0;
-	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
-	dma_block_cfg_gpu_out.source_address = 0;
-	dma_block_cfg_gpu_out.dest_address = write_addr;
-	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg_gpu_out);
-
-	/* Start GPU */
-	GPU->CR = GPU_CR_ALPHA_BLENDER;
-
-	/* Start GPU DMAs */
-	dma_start(fastvdma_dev_gpu_in_1, 0);
-	dma_start(fastvdma_dev_gpu_in_2, 0);
-	dma_start(fastvdma_dev_gpu_out, 0);
-
-	printf("Blending finished\n");
-}
-
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_ov2640_control,
 	SHELL_CMD_ARG(brightness, NULL, "\t(-2 to +2) Set brightness level", cmd_ov2640_set_brightness, 2, 1),
@@ -855,28 +520,14 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_ov2640, 
-	// SHELL_CMD_ARG(reset, NULL, NULL, cmd_ov2640_reset, 1, 0),
 	SHELL_CMD(control, &sub_ov2640_control, "\tov2640 control commands", NULL),
-	SHELL_CMD_ARG(send_image, NULL, "\tsend image via ethernet", cmd_ov2640_send_image, 1, 1),
-	SHELL_CMD_ARG(capture, NULL, "\tperform capture", cmd_ov2640_capture, 1, 1),
+	SHELL_CMD_ARG(send_image, NULL, "\tSend image via UPD at 192.0.2.2. "
+        "Provide either left or right to choose which buffer should be sent. "
+        "If none provided these will be sent one after another starting with the left one.\n",
+        cmd_ov2640_send_image, 1, 1),
+	SHELL_CMD_ARG(capture, NULL, "\tInitialize camera capture. "
+        "Provide either left or right to choose which camera image should be initialized.\n",
+        cmd_ov2640_capture, 1, 1),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(ov2640, &sub_ov2640, "\tov2640 commands", NULL);
-
-SHELL_STATIC_SUBCMD_SET_CREATE(
-	sub_display, SHELL_CMD_ARG(test_display_colors, NULL, NULL, test_display_colors, 1, 0),
-	SHELL_CMD_ARG(test_cam1, NULL, NULL, test_cam1, 1, 0),
-	SHELL_CMD_ARG(test_cam2, NULL, NULL, test_cam2, 1, 0),
-	SHELL_CMD_ARG(test_video, NULL, NULL, test_video, 1, 0),
-	SHELL_CMD_ARG(test_video_with_blender, NULL, NULL, test_video_with_blender, 1, 0),
-	SHELL_CMD_ARG(single_blender_test, NULL, NULL, single_blender_test, 1, 0),
-	SHELL_CMD_ARG(set_resolution, NULL,
-					    "Resolutions:\n"
-					    "1920x1080_60Hz\t"
-					    "1280x720_60Hz\t"
-					    "800x600_60Hz\t"
-					    "640x480_75Hz\n", set_resolution, 2, 1),
-	SHELL_SUBCMD_SET_END);
-
-SHELL_CMD_REGISTER(display, &sub_display, "\tdisplay commands", NULL);
-SHELL_CMD_REGISTER(generate, NULL, "\tgenerate image with text", cmd_generate_image_with_text);
