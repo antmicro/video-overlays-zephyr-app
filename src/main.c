@@ -166,7 +166,8 @@ void main(void)
 	}
 
 	/* Initialize all 5 DMAs */
-	dma_init_cams();
+	dma_init_cam1();
+	dma_init_cam2();
 	dma_init_gpu_inputs();
 	dma_init_gpu_output();
 
