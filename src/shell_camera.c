@@ -346,10 +346,10 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 				dma_block_cfg_cam.block_size = width * height;
 				dma_block_cfg_cam.source_address = 0;
 				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 				dma_block_cfg_cam.source_address = 0;
 				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam);
+				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 			}
 			i++;
 		}
@@ -372,7 +372,7 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 				dma_block_cfg_cam.block_size = width * height;
 				dma_block_cfg_cam.source_address = 0;
 				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 			}
 			i++;
 		}
@@ -394,7 +394,7 @@ static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 				dma_block_cfg_cam.block_size = width * height;
 				dma_block_cfg_cam.source_address = 0;
 				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam);
+				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 			}
 			i++;
 		}

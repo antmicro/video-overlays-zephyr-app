@@ -72,52 +72,25 @@ static int display_buffer2(const struct shell *shell, size_t argc, char **argv)
 	return 0;
 }
 
-static int display_video(const struct shell *shell, size_t argc, char **argv)
+static int display_video_cam1(const struct shell *shell, size_t argc, char **argv)
 {
-	hdmi_out0_core_initiator_enable_write(1);
-
-	flush_l2_cache();
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
 	dma_start(fastvdma_dev_cam_1, 0);
-	struct dma_status stat;
-
 	while(1){
-		flush_l2_cache();
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_2);
-		k_msleep(10);
-		flush_l2_cache();
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
-		k_msleep(10);
-		flush_l2_cache();
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-	    dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_3);
-		k_msleep(10);
+		hdmi_out0_core_initiator_enable_write(1);
+		hdmi_out0_core_initiator_base_write(hdmi_buffers1[cam1_buffer_index]);
+		hdmi_out0_core_initiator_enable_write(0);
 	}
+	return 0;
+}
 
+static int display_video_cam2(const struct shell *shell, size_t argc, char **argv)
+{
+	dma_start(fastvdma_dev_cam_2, 0);
+	while(1){
+		hdmi_out0_core_initiator_enable_write(1);
+		hdmi_out0_core_initiator_base_write(hdmi_buffers2[cam1_buffer_index]);
+		hdmi_out0_core_initiator_enable_write(0);
+	}
 	return 0;
 }
 
@@ -127,7 +100,7 @@ static int display_video_with_overlay(const struct shell *shell, size_t argc, ch
 
 	flush_l2_cache();
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 	dma_start(fastvdma_dev_cam_1, 0);
 	struct dma_status stat;
 	char *text = "2021-11-25 10:00";
@@ -141,7 +114,7 @@ static int display_video_with_overlay(const struct shell *shell, size_t argc, ch
 		flush_l2_cache();
 		dma_block_cfg_cam.source_address = 0;
 		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -156,7 +129,7 @@ static int display_video_with_overlay(const struct shell *shell, size_t argc, ch
 		flush_l2_cache();
 		dma_block_cfg_cam.source_address = 0;
 		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -170,7 +143,7 @@ static int display_video_with_overlay(const struct shell *shell, size_t argc, ch
 		k_msleep(10);
 		flush_l2_cache();
 		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		dma_start(fastvdma_dev_cam_1, 0);
 		k_msleep(10);
 	    dma_get_status(fastvdma_dev_cam_1, 0, &stat);
@@ -195,7 +168,7 @@ static int display_image_with_overlay(const struct shell *shell, size_t argc, ch
 	flush_l2_cache();
 
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam);
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 	dma_start(fastvdma_dev_cam_1, 0);
 
 	generate_image_with_text((uint32_t*)&image_with_text, text, fmt_1.width, fmt_1.height);
@@ -230,10 +203,14 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_CMD_ARG(display_buffer2, NULL,
 		"\tDisplay content of buffer2."
 		"It DOES NOT change HDMI resolution.", display_buffer2, 1, 0),
-	SHELL_CMD_ARG(display_video, NULL,
+	SHELL_CMD_ARG(display_video_cam1, NULL,
 		"\tDisplay pictures captured by left camera in continous mode."
 		"It DOES NOT change HDMI resolution."
-		"WARNING: This test is blocking, you can stop this after invoke!", display_video, 1, 0),
+		"WARNING: This test is blocking, you can stop this after invoke!", display_video_cam1, 1, 0),
+	SHELL_CMD_ARG(display_video_cam2, NULL,
+		"\tDisplay pictures captured by right camera in continous mode."
+		"It DOES NOT change HDMI resolution."
+		"WARNING: This test is blocking, you can stop this after invoke!", display_video_cam2, 1, 0),
 	SHELL_CMD_ARG(display_video_with_overlay, NULL,
 		"\tDisplay pictures captured by left camera with overlayed applied on them"
 		"in continous mode. It DOES NOT change HDMI resolution."

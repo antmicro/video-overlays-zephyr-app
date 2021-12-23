@@ -45,9 +45,9 @@ uint32_t img_buff_3[800 * 600];
 uint32_t img_buff_4[800 * 600];
 uint32_t img_buff_5[800 * 600];
 uint32_t img_buff_6[800 * 600];
-uint32_t img_buff_7[800 * 600] = {0};
-uint32_t img_buff_8[800 * 600] = {0};
-uint32_t img_buff_9[800 * 600] = {0};
+uint32_t img_buff_7[800 * 600];
+uint32_t img_buff_8[800 * 600];
+uint32_t img_buff_9[800 * 600];
 
 uint32_t* hdmi_buffers1[3] = {&img_buff_1, &img_buff_2, &img_buff_3};
 uint32_t* hdmi_buffers2[3] = {&img_buff_4, &img_buff_5, &img_buff_6};
@@ -57,11 +57,16 @@ uint32_t image_with_text[800 * 600];
 uint32_t img_length_1 = 800 * 600;
 uint32_t img_length_2 = 800 * 600;
 
+int cam1_buffer_index = 0;
+int cam2_buffer_index = 0;
+int gpu_buffer_index = 0;
+
 struct video_format fmt_1;
 struct video_format fmt_2;
 struct video_caps caps;
 
-struct dma_config dma_cfg_cam = {0};
+struct dma_config dma_cfg_cam1 = {0};
+struct dma_config dma_cfg_cam2 = {0};
 struct dma_config dma_cfg_gpu_in = {0};
 struct dma_config dma_cfg_gpu_out = {0};
 struct dma_block_config dma_block_cfg_cam = {0};
