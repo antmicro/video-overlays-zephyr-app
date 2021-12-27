@@ -94,6 +94,42 @@ static int display_video_cam2(const struct shell *shell, size_t argc, char **arg
 	return 0;
 }
 
+static int display_video_with_overlay_cam1(const struct shell *shell, size_t argc, char **argv)
+{
+	dma_cfg_cam1.dma_callback = cam1_with_gpu_dma_user_callback;
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+	dma_start(fastvdma_dev_cam_1, 0);
+	
+	char *text = "2021-11-25 10:00";
+	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
+	blend_images(image_with_text, img_buff_1, img_buff_2);
+
+	while(1){
+		hdmi_out0_core_initiator_enable_write(1);
+		hdmi_out0_core_initiator_base_write(hdmi_buffers3[gpu_buffer_index]);
+		hdmi_out0_core_initiator_enable_write(0);
+	}
+	return 0;
+}
+
+static int display_video_with_overlay_cam2(const struct shell *shell, size_t argc, char **argv)
+{
+	dma_cfg_cam2.dma_callback = cam2_with_gpu_dma_user_callback;
+	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+	dma_start(fastvdma_dev_cam_2, 0);
+	
+	char *text = "2021-11-25 10:00";
+	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
+	blend_images(image_with_text, img_buff_1, img_buff_2);
+
+	while(1){
+		hdmi_out0_core_initiator_enable_write(1);
+		hdmi_out0_core_initiator_base_write(hdmi_buffers3[gpu_buffer_index]);
+		hdmi_out0_core_initiator_enable_write(0);
+	}
+	return 0;
+}
+
 static int display_video_with_overlay(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
@@ -211,6 +247,14 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 		"\tDisplay pictures captured by right camera in continous mode."
 		"It DOES NOT change HDMI resolution."
 		"WARNING: This test is blocking, you can stop this after invoke!", display_video_cam2, 1, 0),
+	SHELL_CMD_ARG(display_video_with_overlay_cam1, NULL,
+		"\tDisplay pictures captured by left camera with overlayed applied on them"
+		"in continous mode. It DOES NOT change HDMI resolution."
+		"WARNING: This test is blocking, you can stop this after invoke!", display_video_with_overlay_cam1, 1, 0),
+	SHELL_CMD_ARG(display_video_with_overlay_cam2, NULL,
+		"\tDisplay pictures captured by right camera with overlayed applied on them"
+		"in continous mode. It DOES NOT change HDMI resolution."
+		"WARNING: This test is blocking, you can stop this after invoke!", display_video_with_overlay_cam2, 1, 0),
 	SHELL_CMD_ARG(display_video_with_overlay, NULL,
 		"\tDisplay pictures captured by left camera with overlayed applied on them"
 		"in continous mode. It DOES NOT change HDMI resolution."

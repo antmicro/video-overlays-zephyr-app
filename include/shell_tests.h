@@ -1,5 +1,6 @@
 #include "img_gen.h"
 #include "gpu.h"
+#include "init.h"
 
 extern const struct device* ov2640_dev_1;
 extern const struct device* ov2640_dev_2;

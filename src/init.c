@@ -16,12 +16,42 @@ void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
 		dma_block_cfg_cam.dest_address = &img_buff_2;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		cam1_buffer_index = 0;
-
 		break;
 	case 2:
 		dma_block_cfg_cam.dest_address = &img_buff_3;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		cam1_buffer_index = 1;
+		break;
+	default:
+		break;
+	}
+}
+
+void cam1_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
+			      uint32_t id, int error_code)
+{
+	switch (cam1_buffer_index)
+	{
+	case 0:
+		dma_block_cfg_cam.dest_address = &img_buff_1;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+		cam1_buffer_index = 2;
+		blend_images(image_with_text, img_buff_2, img_buff_7);
+		gpu_buffer_index = 2;
+		break;
+	case 1:
+		dma_block_cfg_cam.dest_address = &img_buff_2;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+		cam1_buffer_index = 0;
+		blend_images(image_with_text, img_buff_3, img_buff_8);
+		gpu_buffer_index = 0;
+		break;
+	case 2:
+		dma_block_cfg_cam.dest_address = &img_buff_3;
+		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+		cam1_buffer_index = 1;
+		blend_images(image_with_text, img_buff_1, img_buff_9);
+		gpu_buffer_index = 1;
 		break;
 	default:
 		break;
@@ -47,6 +77,37 @@ void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
 		dma_block_cfg_cam.dest_address = &img_buff_6;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 		cam2_buffer_index = 1;
+		break;
+	default:
+		break;
+	}
+}
+
+void cam2_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
+			      uint32_t id, int error_code)
+{
+	switch (cam2_buffer_index)
+	{
+	case 0:
+		dma_block_cfg_cam.dest_address = &img_buff_4;
+		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+		cam2_buffer_index = 2;
+		blend_images(image_with_text, img_buff_2, img_buff_7);
+		gpu_buffer_index = 2;
+		break;
+	case 1:
+		dma_block_cfg_cam.dest_address = &img_buff_5;
+		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+		cam2_buffer_index = 0;
+		blend_images(image_with_text, img_buff_3, img_buff_8);
+		gpu_buffer_index = 0;
+		break;
+	case 2:
+		dma_block_cfg_cam.dest_address = &img_buff_6;
+		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+		cam2_buffer_index = 1;
+		blend_images(image_with_text, img_buff_1, img_buff_9);
+		gpu_buffer_index = 1;
 		break;
 	default:
 		break;
@@ -133,6 +194,10 @@ void dma_init_gpu_inputs() {
 	/* from memory to peripheral */
 	dma_block_cfg_gpu_in.dest_address = 0;
 
+	/* enable loop mode */
+	dma_block_cfg_gpu_in.source_gather_en = 1;
+	dma_block_cfg_gpu_in.dest_scatter_en = 1;
+
 	/* set image height */
 	dma_block_cfg_gpu_in.source_gather_count = 600;
 	dma_block_cfg_gpu_in.dest_scatter_count = 600;
@@ -156,6 +221,10 @@ void dma_init_gpu_output() {
 
 	/* from peripheral to memory (0) */
 	dma_block_cfg_gpu_out.source_address = 0;
+
+	/* enable loop mode */
+	dma_block_cfg_gpu_out.source_gather_en = 1;
+	dma_block_cfg_gpu_out.dest_scatter_en = 1;
 
 	/* set image height */
 	dma_block_cfg_gpu_out.source_gather_count = 600;
