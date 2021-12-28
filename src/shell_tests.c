@@ -39,17 +39,17 @@ static int display_colors(const struct shell *shell, size_t argc, char **argv)
 	hdmi_out0_core_initiator_enable_write(1);
 	draw_color(800, 600, RGB_RED);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
+	hdmi_out0_core_initiator_base_write(img_buff_10);
 
 	k_msleep(1000);
 	draw_color(800, 600, RGB_GREEN);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
+	hdmi_out0_core_initiator_base_write(img_buff_10);
 
 	k_msleep(1000);
 	draw_color(800, 600, RGB_BLUE);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(BUFFER_ADDR);
+	hdmi_out0_core_initiator_base_write(img_buff_10);
 
     return 0;
 }
@@ -72,25 +72,67 @@ static int display_buffer2(const struct shell *shell, size_t argc, char **argv)
 	return 0;
 }
 
+static int set_bypass(const struct shell *sh, shell_bypass_cb_t bypass)
+{
+	static bool in_use;
+
+	if (bypass && in_use) {
+		shell_error(sh, "Display supports setting bypass on a single instance");
+		return -EBUSY;
+	}
+
+	in_use = !in_use;
+	if (in_use) {
+		shell_print(sh, "Displaying...\npress ctrl-x escape");
+		in_use = true;
+	}
+
+	shell_set_bypass(sh, bypass);
+
+	return 0;
+}
+
+static void bypass_cb(const struct shell *sh, uint8_t *recv, size_t len)
+{
+	bool escape = false;
+
+	if (recv[len - 1] == CHAR_CAN ) {
+		escape = true;
+	} 
+
+	if (escape) {
+		k_thread_suspend(hdmi_id);
+		draw_color(800, 600, RGB_BLACK);
+		k_msleep(10);
+		hdmi_out0_core_initiator_base_write(img_buff_10);
+		hdmi_out0_core_initiator_enable_write(1);
+		shell_print(sh, "Exiting...");
+		set_bypass(sh, NULL);
+		return;
+	}
+}
+
 static int display_video_cam1(const struct shell *shell, size_t argc, char **argv)
 {
+	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+	dma_stop(fastvdma_dev_cam_2, 0);
 	dma_start(fastvdma_dev_cam_1, 0);
-	while(1){
-		hdmi_out0_core_initiator_enable_write(1);
-		hdmi_out0_core_initiator_base_write(hdmi_buffers1[cam1_buffer_index]);
-		hdmi_out0_core_initiator_enable_write(0);
-	}
+	mode = cam1;
+	k_thread_resume(hdmi_id);
+	set_bypass(shell, bypass_cb);
 	return 0;
 }
 
 static int display_video_cam2(const struct shell *shell, size_t argc, char **argv)
 {
+	dma_cfg_cam2.dma_callback = cam2_dma_user_callback;
+	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+	dma_stop(fastvdma_dev_cam_1, 0);
 	dma_start(fastvdma_dev_cam_2, 0);
-	while(1){
-		hdmi_out0_core_initiator_enable_write(1);
-		hdmi_out0_core_initiator_base_write(hdmi_buffers2[cam1_buffer_index]);
-		hdmi_out0_core_initiator_enable_write(0);
-	}
+	mode = cam2;
+	k_thread_resume(hdmi_id);
+	set_bypass(shell, bypass_cb);
 	return 0;
 }
 
@@ -98,17 +140,16 @@ static int display_video_with_overlay_cam1(const struct shell *shell, size_t arg
 {
 	dma_cfg_cam1.dma_callback = cam1_with_gpu_dma_user_callback;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+	dma_stop(fastvdma_dev_cam_2, 0);
 	dma_start(fastvdma_dev_cam_1, 0);
 	
 	char *text = "2021-11-25 10:00";
 	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
 	blend_images(image_with_text, img_buff_1, img_buff_2);
 
-	while(1){
-		hdmi_out0_core_initiator_enable_write(1);
-		hdmi_out0_core_initiator_base_write(hdmi_buffers3[gpu_buffer_index]);
-		hdmi_out0_core_initiator_enable_write(0);
-	}
+	mode = overlay;
+	k_thread_resume(hdmi_id);
+	set_bypass(shell, bypass_cb);
 	return 0;
 }
 
@@ -116,17 +157,16 @@ static int display_video_with_overlay_cam2(const struct shell *shell, size_t arg
 {
 	dma_cfg_cam2.dma_callback = cam2_with_gpu_dma_user_callback;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+	dma_stop(fastvdma_dev_cam_1, 0);
 	dma_start(fastvdma_dev_cam_2, 0);
 	
 	char *text = "2021-11-25 10:00";
 	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
 	blend_images(image_with_text, img_buff_1, img_buff_2);
 
-	while(1){
-		hdmi_out0_core_initiator_enable_write(1);
-		hdmi_out0_core_initiator_base_write(hdmi_buffers3[gpu_buffer_index]);
-		hdmi_out0_core_initiator_enable_write(0);
-	}
+	mode = overlay;
+	k_thread_resume(hdmi_id);
+	set_bypass(shell, bypass_cb);
 	return 0;
 }
 

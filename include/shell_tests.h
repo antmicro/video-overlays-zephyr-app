@@ -18,6 +18,7 @@ extern uint32_t img_buff_6[800 * 600];
 extern uint32_t img_buff_7[800 * 600];
 extern uint32_t img_buff_8[800 * 600];
 extern uint32_t img_buff_9[800 * 600];
+extern uint32_t img_buff_10[800 * 600];
 extern uint32_t* hdmi_buffers1[3];
 extern uint32_t* hdmi_buffers2[3];
 extern uint32_t* hdmi_buffers3[3];
@@ -39,7 +40,12 @@ extern int cam1_buffer_index;
 extern int cam2_buffer_index;
 extern int gpu_buffer_index;
 
-#define BUFFER_ADDR 0x200000
+extern const k_tid_t hdmi_id;
+extern enum mode{cam1, cam2, overlay};
+
+extern enum mode mode;
+
+// #define BUFFER_ADDR 0x200000
 
 #define IMG2_HEIGHT 800U
 #define IMG2_WIDTH 600U
@@ -50,5 +56,8 @@ extern int gpu_buffer_index;
 #define IMG1_WIDTH 600U
 #define IMG1_LINE IMG1_WIDTH * 4
 #define IMG1_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
+
+#define CHAR_CAN 0x18
+#define CHAR_DC1 0x11
 
 void flush_l2_cache(void);

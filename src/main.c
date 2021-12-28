@@ -14,6 +14,7 @@
 #include <drivers/gpio.h>
 
 #include "net.h"
+#include "hdmi.h"
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
@@ -48,6 +49,7 @@ uint32_t img_buff_6[800 * 600];
 uint32_t img_buff_7[800 * 600];
 uint32_t img_buff_8[800 * 600];
 uint32_t img_buff_9[800 * 600];
+uint32_t img_buff_10[800 * 600];
 
 uint32_t* hdmi_buffers1[3] = {&img_buff_1, &img_buff_2, &img_buff_3};
 uint32_t* hdmi_buffers2[3] = {&img_buff_4, &img_buff_5, &img_buff_6};
@@ -76,6 +78,40 @@ struct dma_block_config dma_block_cfg_gpu_out = {0};
 /* Implement function to flush cache memory for DMA */
 #define CONFIG_L2_SIZE 8192
 #define MAIN_RAM_BASE 0x40000000L
+
+#define STACKSIZE 1024
+#define PRIORITY 7
+
+enum mode{cam1, cam2, overlay};
+enum mode mode = cam1;
+
+void hdmi(void)
+{
+	while(true) {
+		hdmi_out0_core_initiator_enable_write(1);
+		switch (mode) {
+			case cam1:
+				hdmi_out0_core_initiator_base_write(hdmi_buffers1[cam1_buffer_index]);
+				break;
+			case cam2:
+				hdmi_out0_core_initiator_base_write(hdmi_buffers2[cam2_buffer_index]);
+				break;
+			case overlay:
+				hdmi_out0_core_initiator_base_write(hdmi_buffers3[gpu_buffer_index]);
+				break;
+			default:
+				break;
+			}
+		hdmi_out0_core_initiator_enable_write(0);
+		k_msleep(10);		
+	}
+}
+
+const k_tid_t hdmi_id;
+
+K_THREAD_DEFINE(hdmi_id, STACKSIZE, hdmi, NULL, NULL, NULL,
+		PRIORITY, 0, 0);
+
 
 void flush_l2_cache(void)
 {
@@ -153,6 +189,8 @@ int get_camera_fmt(const struct device *dev, struct video_format *fmt) {
 
 void main(void)
 {
+	k_thread_suspend(hdmi_id);
+
 	ov2640_dev_1 = device_get_binding(OV2640_1);
 	ov2640_dev_2 = device_get_binding(OV2640_2);
 	fastvdma_dev_cam_1 = device_get_binding(FASTVDMA_1);

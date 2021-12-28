@@ -1,3 +1,5 @@
+#include <zephyr.h>
+extern uint32_t img_buff_10[800 * 600];
 #define YCBCR422_WHITE  0x80ff80ff
 #define YCBCR422_YELLOW 0x00e194e1
 #define YCBCR422_CYAN   0xabb200b2

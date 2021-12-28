@@ -20,6 +20,7 @@ extern uint32_t img_buff_6[800 * 600];
 extern uint32_t img_buff_7[800 * 600];
 extern uint32_t img_buff_8[800 * 600];
 extern uint32_t img_buff_9[800 * 600];
+extern uint32_t img_buff_10[800 * 600];
 extern uint32_t* hdmi_buffers1[3];
 extern uint32_t* hdmi_buffers2[3];
 extern uint32_t* hdmi_buffers3[3];

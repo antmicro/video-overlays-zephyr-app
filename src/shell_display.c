@@ -3,6 +3,7 @@
 #include <drivers/video.h>
 
 #include "hdmi.h"
+#include "pattern.h"
 
 /* HDMI predefined timings */
 struct video_timing vt1920x1080_60Hz = {
@@ -89,6 +90,11 @@ static int cmd_display_set_resolution_1920x1080_60Hz(const struct shell *shell, 
 
 	hdmi_out0_driver_clocking_mmcm_reset_write(0);
 
+	draw_color(800, 600, RGB_BLACK);
+	k_msleep(10);
+	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_enable_write(1);
+
 	shell_print(shell, "\nResoluton 1920x1080 @ 60Hz frequency set!\n");
 
 	return 0;
@@ -102,6 +108,11 @@ static int cmd_display_set_resolution_1280x720_60Hz(const struct shell *shell, s
 	timings_write(&vt1280x720_60Hz);
 
 	hdmi_out0_driver_clocking_mmcm_reset_write(0);
+
+	draw_color(800, 600, RGB_BLACK);
+	k_msleep(10);
+	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 1280x720 @ 60Hz frequency set!\n");
 
@@ -117,6 +128,11 @@ static int cmd_display_set_resolution_800x600_60Hz(const struct shell *shell, si
 
 	hdmi_out0_driver_clocking_mmcm_reset_write(0);
 
+	draw_color(800, 600, RGB_BLACK);
+	k_msleep(10);
+	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_enable_write(1);
+
 	shell_print(shell, "\nResoluton 800x600 @ 60Hz frequency set!\n");
 
 	return 0;
@@ -130,6 +146,11 @@ static int cmd_display_set_resolution_640x480_75Hz(const struct shell *shell, si
 	timings_write(&vt640x480_75Hz);
 
 	hdmi_out0_driver_clocking_mmcm_reset_write(0);
+
+	draw_color(800, 600, RGB_BLACK);
+	k_msleep(10);
+	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 640x480 @ 75Hz frequency set!\n");
 

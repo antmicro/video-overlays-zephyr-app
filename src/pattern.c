@@ -18,8 +18,7 @@ static int inc_color(int color)
 }
 
 void draw_pattern(int h_active, int v_active)
-{
-	volatile unsigned int *buffer = (unsigned int *)0x40200000;
+{;
 	int i;
 	int color;
 	color = -1;
@@ -28,7 +27,7 @@ void draw_pattern(int h_active, int v_active)
 		if (i % (h_active / 32) == 0)
 			color = inc_color(color);
 		if (color >= 0)
-			buffer[i] = color_bar[color];
+			img_buff_10[i] = color_bar[color];
 	}
 }
 
@@ -37,16 +36,7 @@ void draw_color(int h_active, int v_active, int color)
 	volatile unsigned int *buffer = (unsigned int *)0x40200000;
 	/* color bar pattern */
 	for (int i = 0; i < h_active * v_active; i++) {
-			buffer[i] = color;
-	}
-}
-
-void draw_color2(int h_active, int v_active, int color)
-{
-	volatile unsigned int *buffer = (unsigned int *)0x40F00000;
-	/* color bar pattern */
-	for (int i = 0; i < h_active * v_active; i++) {
-			buffer[i] = color;
+			img_buff_10[i] = color;
 	}
 }
 
@@ -60,10 +50,10 @@ void draw_image(int h_active, int v_active)
 				temp++;
 			}
 			if(temp % 2 == 0){
-				buffer[i] = RGB_GREEN;
+				img_buff_10[i] = RGB_GREEN;
 			}
 			else{
-				buffer[i] = RGB_RED;
+				img_buff_10[i] = RGB_RED;
 			}
 	}
 }
