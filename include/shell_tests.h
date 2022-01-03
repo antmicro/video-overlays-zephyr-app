@@ -9,16 +9,16 @@ extern const struct device* fastvdma_dev_cam_2;
 extern const struct device* fastvdma_dev_gpu_in_1;
 extern const struct device* fastvdma_dev_gpu_in_2;
 extern const struct device* fastvdma_dev_gpu_out;
-extern uint32_t img_buff_1[1280 * 1024];
-extern uint32_t img_buff_2[1280 * 1024];
-extern uint32_t img_buff_3[1280 * 1024];
-extern uint32_t img_buff_4[1280 * 1024];
-extern uint32_t img_buff_5[1280 * 1024];
-extern uint32_t img_buff_6[1280 * 1024];
-extern uint32_t img_buff_7[1280 * 1024];
-extern uint32_t img_buff_8[1280 * 1024];
-extern uint32_t img_buff_9[1280 * 1024];
-extern uint32_t img_buff_10[1280 * 1024];
+extern uint32_t img_buff_1[1600 * 1200];
+extern uint32_t img_buff_2[1600 * 1200];
+extern uint32_t img_buff_3[1600 * 1200];
+extern uint32_t img_buff_4[1600 * 1200];
+extern uint32_t img_buff_5[1600 * 1200];
+extern uint32_t img_buff_6[1600 * 1200];
+extern uint32_t img_buff_7[1600 * 1200];
+extern uint32_t img_buff_8[1600 * 1200];
+extern uint32_t img_buff_9[1600 * 1200];
+extern uint32_t img_buff_10[1600 * 1200];
 extern uint32_t* hdmi_buffers1[3];
 extern uint32_t* hdmi_buffers2[3];
 extern uint32_t* hdmi_buffers3[3];
@@ -34,14 +34,14 @@ extern struct dma_config dma_cfg_gpu_out;
 extern struct dma_block_config dma_block_cfg_cam;
 extern struct dma_block_config dma_block_cfg_gpu_in;
 extern struct dma_block_config dma_block_cfg_gpu_out;
-extern uint32_t image_with_text[1280 * 1024];
+extern uint32_t image_with_text[1600 * 1200];
 
 extern int cam1_buffer_index;
 extern int cam2_buffer_index;
 extern int gpu_buffer_index;
 
 extern const k_tid_t hdmi_id;
-extern enum mode{cam1, cam2, overlay};
+extern enum mode{cam1, cam2, overlay} mode;
 
 extern enum mode mode;
 
@@ -61,3 +61,4 @@ extern enum mode mode;
 #define CHAR_DC1 0x11
 
 void flush_l2_cache(void);
+void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr);

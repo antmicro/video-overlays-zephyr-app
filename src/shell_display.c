@@ -36,6 +36,52 @@ struct video_timing vt1280x720_60Hz = {
 	.v_sync_width = 5,
 };
 
+struct video_timing vt1600x1200_60Hz = {
+
+	.pixel_clock = 16200,
+
+	.h_active = 1600,
+	.h_blanking = 560,
+	.h_sync_offset = 64,
+	.h_sync_width = 192,
+
+	.v_active = 1200,
+	.v_blanking = 50,
+	.v_sync_offset = 1,
+	.v_sync_width = 3,
+};
+
+struct video_timing vt1280x1024_60Hz = {
+
+	.pixel_clock = 10800,
+
+	.h_active = 1280,
+	.h_blanking = 408,
+	.h_sync_offset = 48,
+	.h_sync_width = 112,
+
+	.v_active = 1024,
+	.v_blanking = 42,
+	.v_sync_offset = 1,
+	.v_sync_width = 3,
+};
+
+struct video_timing vt1024x768_60Hz = {
+
+	.pixel_clock = 6500,
+
+	.h_active = 1024,
+	.h_blanking = 320,
+	.h_sync_offset = 24,
+	.h_sync_width = 136,
+
+	.v_active = 768,
+	.v_blanking = 38,
+	.v_sync_offset = 3,
+	.v_sync_width = 6,
+
+};
+
 struct video_timing vt800x600_60Hz = {
 
 	.pixel_clock = 4000,
@@ -91,9 +137,9 @@ static int cmd_display_set_resolution_1920x1080_60Hz(const struct shell *shell, 
 
 	hdmi_out0_driver_clocking_mmcm_reset_write(0);
 
-	draw_color(800, 600, RGB_BLACK);
+	draw_color(1920, 1080, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 1920x1080 @ 60Hz frequency set!\n");
@@ -110,12 +156,69 @@ static int cmd_display_set_resolution_1280x720_60Hz(const struct shell *shell, s
 
 	hdmi_out0_driver_clocking_mmcm_reset_write(0);
 
-	draw_color(800, 600, RGB_BLACK);
+	draw_color(1280, 720, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 1280x720 @ 60Hz frequency set!\n");
+
+	return 0;
+}
+
+static int cmd_display_set_resolution_1600x1200_60Hz(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(0);
+	hdmi_out0_driver_clocking_mmcm_reset_write(1);
+
+	timings_write(&vt1600x1200_60Hz);
+
+	hdmi_out0_driver_clocking_mmcm_reset_write(0);
+
+	draw_color(1600, 1200, RGB_BLACK);
+	k_msleep(10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_enable_write(1);
+
+	shell_print(shell, "\nResoluton 1600x1200 @ 60Hz frequency set!\n");
+
+	return 0;
+}
+
+static int cmd_display_set_resolution_1280x1024_60Hz(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(0);
+	hdmi_out0_driver_clocking_mmcm_reset_write(1);
+
+	timings_write(&vt1280x1024_60Hz);
+
+	hdmi_out0_driver_clocking_mmcm_reset_write(0);
+
+	draw_color(1280, 1024, RGB_BLACK);
+	k_msleep(10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_enable_write(1);
+
+	shell_print(shell, "\nResoluton 1280x1024 @ 60Hz frequency set!\n");
+
+	return 0;
+}
+
+static int cmd_display_set_resolution_1024x768_60Hz(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_core_initiator_enable_write(0);
+	hdmi_out0_driver_clocking_mmcm_reset_write(1);
+
+	timings_write(&vt1024x768_60Hz);
+
+	hdmi_out0_driver_clocking_mmcm_reset_write(0);
+
+	draw_color(1024, 768, RGB_BLACK);
+	k_msleep(10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_enable_write(1);
+
+	shell_print(shell, "\nResoluton 1024x768 @ 60Hz frequency set!\n");
 
 	return 0;
 }
@@ -131,7 +234,7 @@ static int cmd_display_set_resolution_800x600_60Hz(const struct shell *shell, si
 
 	draw_color(800, 600, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 800x600 @ 60Hz frequency set!\n");
@@ -148,9 +251,9 @@ static int cmd_display_set_resolution_640x480_75Hz(const struct shell *shell, si
 
 	hdmi_out0_driver_clocking_mmcm_reset_write(0);
 
-	draw_color(800, 600, RGB_BLACK);
+	draw_color(640, 480, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 640x480 @ 75Hz frequency set!\n");
@@ -189,6 +292,9 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_display_resolution,
 	SHELL_CMD_ARG(mode_1920x1080_60Hz, NULL, "\t1920x1080_60Hz", cmd_display_set_resolution_1920x1080_60Hz, 1, 0),
 	SHELL_CMD_ARG(mode_1280x720_60Hz,  NULL, "\t1280x720_60Hz",  cmd_display_set_resolution_1280x720_60Hz,  1, 0),
+	SHELL_CMD_ARG(mode_1600x1200_60Hz, NULL, "\t1600x1200_60Hz", cmd_display_set_resolution_1600x1200_60Hz,  1, 0),
+	SHELL_CMD_ARG(mode_1280x1024_60Hz, NULL, "\t1280x1024_60Hz", cmd_display_set_resolution_1280x1024_60Hz,  1, 0),
+	SHELL_CMD_ARG(mode_1024x768_60Hz,  NULL, "\t1024x768_60Hz",  cmd_display_set_resolution_1024x768_60Hz,  1, 0),
 	SHELL_CMD_ARG(mode_800x600_60Hz,   NULL, "\t800x600_60Hz",   cmd_display_set_resolution_800x600_60Hz,   1, 0),
 	SHELL_CMD_ARG(mode_640x480_75Hz,   NULL, "\t640x480_75Hz",   cmd_display_set_resolution_640x480_75Hz,   1, 0),
 	SHELL_SUBCMD_SET_END);
@@ -199,6 +305,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 						"Resolutions:\n"
 						"1920x1080_60Hz\t"
 						"1280x720_60Hz\t"
+						"1024x768_60Hz\t"
 						"800x600_60Hz\t"
 						"640x480_75Hz\n", NULL),
 	SHELL_CMD_ARG(reset, NULL, "\tReset signal for HDMI core. After setting this to 1, you must manually set it back to 0.\n",

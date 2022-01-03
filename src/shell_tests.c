@@ -37,38 +37,48 @@ void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
 static int display_colors(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
-	draw_color(800, 600, RGB_RED);
+	draw_color(fmt_1.height, fmt_1.width, RGB_RED);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 
 	k_msleep(1000);
-	draw_color(800, 600, RGB_GREEN);
+	draw_color(fmt_1.height, fmt_1.width, RGB_GREEN);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 
 	k_msleep(1000);
-	draw_color(800, 600, RGB_BLUE);
+	draw_color(fmt_1.height, fmt_1.width, RGB_BLUE);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write(img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 
     return 0;
 }
 
 static int display_buffer1(const struct shell *shell, size_t argc, char **argv)
 {
+	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+	dma_stop(fastvdma_dev_cam_2, 0);
+	dma_start(fastvdma_dev_cam_1, 0);
 	hdmi_out0_core_initiator_enable_write(1);
 	shell_print(shell, "Displaying image from camera 1");
+	k_msleep(600);
+	dma_stop(fastvdma_dev_cam_1, 0);
 	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
-
 	return 0;
 }
 
 static int display_buffer2(const struct shell *shell, size_t argc, char **argv)
 {
+	dma_cfg_cam2.dma_callback = cam2_dma_user_callback;
+	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+	dma_stop(fastvdma_dev_cam_1, 0);
+	dma_start(fastvdma_dev_cam_2, 0);
 	hdmi_out0_core_initiator_enable_write(1);
 	shell_print(shell, "Displaying image from camera 2");
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_2);
-
+	k_msleep(600);
+	dma_stop(fastvdma_dev_cam_2, 0);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_4);
 	return 0;
 }
 
@@ -104,7 +114,7 @@ static void bypass_cb(const struct shell *sh, uint8_t *recv, size_t len)
 		k_thread_suspend(hdmi_id);
 		draw_color(800, 600, RGB_BLACK);
 		k_msleep(10);
-		hdmi_out0_core_initiator_base_write(img_buff_10);
+		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 		hdmi_out0_core_initiator_enable_write(1);
 		shell_print(sh, "Exiting...");
 		set_bypass(sh, NULL);
@@ -144,8 +154,8 @@ static int display_video_with_overlay_cam1(const struct shell *shell, size_t arg
 	dma_start(fastvdma_dev_cam_1, 0);
 	
 	char *text = "2021-11-25 10:00";
-	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
-	blend_images(image_with_text, img_buff_1, img_buff_2);
+	generate_image_with_text(image_with_text, text, fmt_1.width, fmt_1.height);
+	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_2);
 
 	mode = overlay;
 	k_thread_resume(hdmi_id);
@@ -161,78 +171,12 @@ static int display_video_with_overlay_cam2(const struct shell *shell, size_t arg
 	dma_start(fastvdma_dev_cam_2, 0);
 	
 	char *text = "2021-11-25 10:00";
-	generate_image_with_text(&image_with_text, text, fmt_1.width, fmt_1.height);
-	blend_images(image_with_text, img_buff_1, img_buff_2);
+	generate_image_with_text(image_with_text, text, fmt_1.width, fmt_1.height);
+	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_2);
 
 	mode = overlay;
 	k_thread_resume(hdmi_id);
 	set_bypass(shell, bypass_cb);
-	return 0;
-}
-
-static int display_video_with_overlay(const struct shell *shell, size_t argc, char **argv)
-{
-	hdmi_out0_core_initiator_enable_write(1);
-
-	flush_l2_cache();
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-	dma_start(fastvdma_dev_cam_1, 0);
-	struct dma_status stat;
-	char *text = "2021-11-25 10:00";
-
-	generate_image_with_text((uint32_t*)&image_with_text, text, fmt_1.width, fmt_1.height);
-	k_msleep(100);
-	blend_images((uint32_t)image_with_text, (uint32_t)img_buff_2, (uint32_t)img_buff_4);
-	k_msleep(100);
-
-	while(1){
-		flush_l2_cache();
-		dma_block_cfg_cam.source_address = 0;
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		k_msleep(100);
-		blend_images((uint32_t)image_with_text, (uint32_t)img_buff_1, (uint32_t)img_buff_5);
-		k_msleep(100);
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_4);
-		k_msleep(10);
-		flush_l2_cache();
-		dma_block_cfg_cam.source_address = 0;
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-		dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		k_msleep(100);
-		blend_images((uint32_t)image_with_text, (uint32_t)img_buff_3, (uint32_t)img_buff_6);
-		k_msleep(100);
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_5);
-		k_msleep(10);
-		flush_l2_cache();
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-		dma_start(fastvdma_dev_cam_1, 0);
-		k_msleep(10);
-	    dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		while(stat.busy != 0){
-			dma_get_status(fastvdma_dev_cam_1, 0, &stat);
-		}
-		k_msleep(100);
-		blend_images((uint32_t)image_with_text, (uint32_t)img_buff_2, (uint32_t)img_buff_4);
-		k_msleep(100);
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_6);
-		k_msleep(10);
-	}
-
 	return 0;
 }
 
@@ -242,15 +186,17 @@ static int display_image_with_overlay(const struct shell *shell, size_t argc, ch
 
 	hdmi_out0_core_initiator_enable_write(1);
 	flush_l2_cache();
-
+	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 	dma_start(fastvdma_dev_cam_1, 0);
-
+	k_msleep(300);
+	dma_stop(fastvdma_dev_cam_1, 0);
 	generate_image_with_text((uint32_t*)&image_with_text, text, fmt_1.width, fmt_1.height);
-	blend_images((uint32_t)image_with_text, (uint32_t)img_buff_1, (uint32_t)img_buff_2);
+	// k_msleep(1000);
+	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_10);
 
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_2);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 
 	return 0;
 }
@@ -295,10 +241,6 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 		"\tDisplay pictures captured by right camera with overlayed applied on them"
 		"in continous mode. It DOES NOT change HDMI resolution."
 		"WARNING: This test is blocking, you can stop this after invoke!", display_video_with_overlay_cam2, 1, 0),
-	SHELL_CMD_ARG(display_video_with_overlay, NULL,
-		"\tDisplay pictures captured by left camera with overlayed applied on them"
-		"in continous mode. It DOES NOT change HDMI resolution."
-		"WARNING: This test is blocking, you can stop this after invoke!", display_video_with_overlay, 1, 0),
 	SHELL_CMD_ARG(display_image_with_overlay, NULL,
 		"\tDisplay single picture captured by left camera with overlaye applied on top of it."
 		"It DOES NOT change HDMI resolution.", display_image_with_overlay, 1, 0),

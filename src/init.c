@@ -1,24 +1,26 @@
 #include <drivers/dma.h>
 #include <stdio.h>
 #include "init.h"
+#include "shell_tests.h"
 
 void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
+	// printf("image captured cam1\n");
 	switch (cam1_buffer_index)
 	{
 	case 0:
-		dma_block_cfg_cam.dest_address = &img_buff_1;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		cam1_buffer_index = 2;
 		break;
 	case 1:
-		dma_block_cfg_cam.dest_address = &img_buff_2;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		cam1_buffer_index = 0;
 		break;
 	case 2:
-		dma_block_cfg_cam.dest_address = &img_buff_3;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		cam1_buffer_index = 1;
 		break;
@@ -30,27 +32,29 @@ void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
 void cam1_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
+	// printf("image captured cam1 gpu\n");
+
 	switch (cam1_buffer_index)
 	{
 	case 0:
-		dma_block_cfg_cam.dest_address = &img_buff_1;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		cam1_buffer_index = 2;
-		blend_images(image_with_text, img_buff_2, img_buff_7);
+		blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_2, (uint32_t)&img_buff_7);
 		gpu_buffer_index = 2;
 		break;
 	case 1:
-		dma_block_cfg_cam.dest_address = &img_buff_2;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		cam1_buffer_index = 0;
-		blend_images(image_with_text, img_buff_3, img_buff_8);
+		blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_3, (uint32_t)&img_buff_8);
 		gpu_buffer_index = 0;
 		break;
 	case 2:
-		dma_block_cfg_cam.dest_address = &img_buff_3;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 		cam1_buffer_index = 1;
-		blend_images(image_with_text, img_buff_1, img_buff_9);
+		blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_9);
 		gpu_buffer_index = 1;
 		break;
 	default:
@@ -61,20 +65,22 @@ void cam1_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
 void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
+	// printf("image captured cam2\n");
+
 	switch (cam2_buffer_index)
 	{
 	case 0:
-		dma_block_cfg_cam.dest_address = &img_buff_4;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_4;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 		cam2_buffer_index = 2;
 		break;
 	case 1:
-		dma_block_cfg_cam.dest_address = &img_buff_5;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_5;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 		cam2_buffer_index = 0;
 		break;
 	case 2:
-		dma_block_cfg_cam.dest_address = &img_buff_6;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_6;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 		cam2_buffer_index = 1;
 		break;
@@ -86,27 +92,29 @@ void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
 void cam2_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
+	// printf("image captured cam2 gpu\n");
+
 	switch (cam2_buffer_index)
 	{
 	case 0:
-		dma_block_cfg_cam.dest_address = &img_buff_4;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_4;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 		cam2_buffer_index = 2;
-		blend_images(image_with_text, img_buff_5, img_buff_7);
+		blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_5, (uint32_t)&img_buff_7);
 		gpu_buffer_index = 2;
 		break;
 	case 1:
-		dma_block_cfg_cam.dest_address = &img_buff_5;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_5;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 		cam2_buffer_index = 0;
-		blend_images(image_with_text, img_buff_6, img_buff_8);
+		blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_6, (uint32_t)&img_buff_8);
 		gpu_buffer_index = 0;
 		break;
 	case 2:
-		dma_block_cfg_cam.dest_address = &img_buff_6;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_6;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 		cam2_buffer_index = 1;
-		blend_images(image_with_text, img_buff_4, img_buff_9);
+		blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_4, (uint32_t)&img_buff_9);
 		gpu_buffer_index = 1;
 		break;
 	default:

@@ -40,24 +40,24 @@ const struct device* fastvdma_dev_gpu_in_2;
 const struct device* fastvdma_dev_gpu_out;
 const struct device* gpio_expander;
 
-uint32_t img_buff_1[1280 * 1024];
-uint32_t img_buff_2[1280 * 1024];
-uint32_t img_buff_3[1280 * 1024];
-uint32_t img_buff_4[1280 * 1024];
-uint32_t img_buff_5[1280 * 1024];
-uint32_t img_buff_6[1280 * 1024];
-uint32_t img_buff_7[1280 * 1024];
-uint32_t img_buff_8[1280 * 1024];
-uint32_t img_buff_9[1280 * 1024];
-uint32_t img_buff_10[1280 * 1024];
+uint32_t img_buff_1[1600 * 1200];
+uint32_t img_buff_2[1600 * 1200];
+uint32_t img_buff_3[1600 * 1200];
+uint32_t img_buff_4[1600 * 1200];
+uint32_t img_buff_5[1600 * 1200];
+uint32_t img_buff_6[1600 * 1200];
+uint32_t img_buff_7[1600 * 1200];
+uint32_t img_buff_8[1600 * 1200];
+uint32_t img_buff_9[1600 * 1200];
+uint32_t img_buff_10[1600 * 1200];
 
 uint32_t* hdmi_buffers1[3] = {img_buff_1, img_buff_2, img_buff_3};
 uint32_t* hdmi_buffers2[3] = {img_buff_4, img_buff_5, img_buff_6};
 uint32_t* hdmi_buffers3[3] = {img_buff_7, img_buff_8, img_buff_9};
 
-uint32_t image_with_text[1280 * 1024];
-uint32_t img_length_1 = 1280 * 1024;
-uint32_t img_length_2 = 1280 * 1024;
+uint32_t image_with_text[1600 * 1200];
+uint32_t img_length_1 = 1600 * 1200;
+uint32_t img_length_2 = 1600 * 1200;
 
 int cam1_buffer_index = 0;
 int cam2_buffer_index = 0;
@@ -82,7 +82,7 @@ struct dma_block_config dma_block_cfg_gpu_out = {0};
 #define STACKSIZE 1024
 #define PRIORITY 7
 
-enum mode{cam1, cam2, overlay};
+enum mode{cam1, cam2, overlay} mode;
 enum mode mode = cam1;
 
 void hdmi(void)
@@ -91,18 +91,18 @@ void hdmi(void)
 		hdmi_out0_core_initiator_enable_write(1);
 		switch (mode) {
 			case cam1:
-				hdmi_out0_core_initiator_base_write(hdmi_buffers1[cam1_buffer_index]);
+				hdmi_out0_core_initiator_base_write((uint32_t)hdmi_buffers1[cam1_buffer_index]);
 				break;
 			case cam2:
-				hdmi_out0_core_initiator_base_write(hdmi_buffers2[cam2_buffer_index]);
+				hdmi_out0_core_initiator_base_write((uint32_t)hdmi_buffers2[cam2_buffer_index]);
 				break;
 			case overlay:
-				hdmi_out0_core_initiator_base_write(hdmi_buffers3[gpu_buffer_index]);
+				hdmi_out0_core_initiator_base_write((uint32_t)hdmi_buffers3[gpu_buffer_index]);
 				break;
 			default:
 				break;
 			}
-		hdmi_out0_core_initiator_enable_write(0);
+		// hdmi_out0_core_initiator_enable_write(0);
 		k_msleep(10);		
 	}
 }

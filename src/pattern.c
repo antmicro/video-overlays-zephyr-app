@@ -33,7 +33,6 @@ void draw_pattern(int h_active, int v_active)
 
 void draw_color(int h_active, int v_active, int color)
 {
-	volatile unsigned int *buffer = (unsigned int *)0x40200000;
 	/* color bar pattern */
 	for (int i = 0; i < h_active * v_active; i++) {
 			img_buff_10[i] = color;
@@ -42,7 +41,6 @@ void draw_color(int h_active, int v_active, int color)
 
 void draw_image(int h_active, int v_active)
 {
-	volatile unsigned int *buffer = (unsigned int *)0x40200000;
 	/* color bar pattern */
 	int temp = 0;
 	for (int i = 0; i < h_active * v_active; i++) {
