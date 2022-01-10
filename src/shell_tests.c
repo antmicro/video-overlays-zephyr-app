@@ -148,17 +148,27 @@ static int display_video_cam2(const struct shell *shell, size_t argc, char **arg
 
 static int display_video_with_overlay_cam1(const struct shell *shell, size_t argc, char **argv)
 {
-	dma_cfg_cam1.dma_callback = cam1_with_gpu_dma_user_callback;
-	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 	dma_stop(fastvdma_dev_cam_2, 0);
+
+	dma_cfg_cam1.dma_callback = cam1_with_gpu_dma_user_callback;
+	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+
+	blocked_buff_cam1 = 0;
+	blocked_buff_gpu = 1;
+	block_buff[blocked_buff_cam1] = true;
+	block_buff[blocked_buff_gpu] = true;
+	
 	dma_start(fastvdma_dev_cam_1, 0);
 	
 	char *text = "2021-11-25 10:00";
 	generate_image_with_text(image_with_text, text, fmt_1.width, fmt_1.height);
-	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_2);
+	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
 
 	mode = overlay;
 	k_thread_resume(hdmi_id);
+	k_thread_resume(cam_id);
+	k_thread_resume(gpu_id);
 	set_bypass(shell, bypass_cb);
 	return 0;
 }

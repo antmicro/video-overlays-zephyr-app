@@ -41,6 +41,9 @@ extern int cam2_buffer_index;
 extern int gpu_buffer_index;
 
 extern const k_tid_t hdmi_id;
+extern const k_tid_t gpu_id;
+extern const k_tid_t cam_id;
+
 extern enum mode{cam1, cam2, overlay} mode;
 
 extern enum mode mode;
