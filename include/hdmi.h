@@ -31,6 +31,8 @@
 #define CLOCKING_MMCM_DAT_REG_HI 	0x38a0L
 #define CLOCKING_MMCM_DAT_REG_LOW 	0x38a4L
 
+#define HDMI_RESET	0x38b0L
+
 #ifndef CSR_BASE
 #define CSR_BASE 0xf0000000L
 #endif
@@ -59,22 +61,41 @@ void fb_clkgen_write(int m, int d);
 /* Initiator configuration */
 uint8_t hdmi_out0_core_initiator_enable_read(void);
 void hdmi_out0_core_initiator_enable_write(uint8_t v);
+uint32_t hdmi_out0_core_initiator_hscan_read();
 void hdmi_out0_core_initiator_hscan_write(uint16_t v);
+uint32_t hdmi_out0_core_initiator_hres_read();
 void hdmi_out0_core_initiator_hres_write(uint16_t v);
+uint32_t hdmi_out0_core_initiator_hsync_start_read();
 void hdmi_out0_core_initiator_hsync_start_write(uint16_t v);
+uint32_t hdmi_out0_core_initiator_hsync_end_read();
 void hdmi_out0_core_initiator_hsync_end_write(uint16_t v);
+uint32_t hdmi_out0_core_initiator_vres_read();
 void hdmi_out0_core_initiator_vres_write(uint16_t v);
+uint32_t hdmi_out0_core_initiator_vsync_start_read();
 void hdmi_out0_core_initiator_vsync_start_write(uint16_t v);
+uint32_t hdmi_out0_core_initiator_vsync_end_read();
 void hdmi_out0_core_initiator_vsync_end_write(uint16_t v);
+uint32_t hdmi_out0_core_initiator_vscan_read();
 void hdmi_out0_core_initiator_vscan_write(uint16_t v);
+uint32_t hdmi_out0_core_initiator_length_read();
 void hdmi_out0_core_initiator_length_write(uint32_t v);
+uint32_t hdmi_out0_core_initiator_base_read();
 void hdmi_out0_core_initiator_base_write(uint32_t v);
 
 /* MMCM configuration */
 uint8_t hdmi_out0_driver_clocking_mmcm_write_read(void);
 void hdmi_out0_driver_clocking_mmcm_write_write(int v);
+uint8_t hdmi_out0_driver_clocking_mmcm_adr_read(void);
 void hdmi_out0_driver_clocking_mmcm_adr_write(uint8_t v);
+uint16_t hdmi_out0_driver_clocking_mmcm_dat_w_read(void);
 void hdmi_out0_driver_clocking_mmcm_dat_w_write(uint16_t v);
 uint8_t hdmi_out0_driver_clocking_mmcm_drdy_read(void);
+uint8_t hdmi_out0_driver_clocking_mmcm_reset_read(void);
 void hdmi_out0_driver_clocking_mmcm_reset_write(uint8_t v);
 void hdmi_out0_driver_clocking_mmcm_write(int adr, int data);
+
+/* Reset HDMI core */
+void hdmi_out0_reset_write(uint8_t v);
+void hdmi_out0_reset_regs();
+
+void hdmi_out0_status();
