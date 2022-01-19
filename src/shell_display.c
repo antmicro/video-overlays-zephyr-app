@@ -157,6 +157,33 @@ static int cmd_display_set_resolution_640x480_75Hz(const struct shell *shell, si
 	return 0;
 }
 
+static int cmd_hdmi_reset(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_reset_write(atoi(argv[1]));
+
+	shell_print(shell, "HDMI reset signal set to %s\n", argv[1]);
+
+	return 0;
+}
+
+static int cmd_hdmi_reset_regs(const struct shell *shell, size_t argc, char **argv)
+{
+	hdmi_out0_reset_regs();
+
+	shell_print(shell, "HDMI registers reset.\n");
+
+	return 0;
+}
+
+static int cmd_hdmi_status(const struct shell *shell, size_t argc, char **argv)
+{
+	shell_print(shell, "HDMI registers:\n");
+
+	hdmi_out0_status();
+
+	return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_display_resolution,
 	SHELL_CMD_ARG(mode_1920x1080_60Hz, NULL, "\t1920x1080_60Hz", cmd_display_set_resolution_1920x1080_60Hz, 1, 0),
@@ -173,6 +200,12 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 						"1280x720_60Hz\t"
 						"800x600_60Hz\t"
 						"640x480_75Hz\n", NULL),
+	SHELL_CMD_ARG(reset, NULL, "\tReset signal for HDMI core. After setting this to 1, you must manually set it back to 0.\n",
+        cmd_hdmi_reset, 2, 0),
+	SHELL_CMD_ARG(reset_regs, NULL, "\tReset all HDMI registers to 0.\n",
+        cmd_hdmi_reset_regs, 0, 0),
+	SHELL_CMD_ARG(status, NULL, "\tPrint values of HDMI registers.\n",
+        cmd_hdmi_status, 1, 0),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(display, &sub_display, "\tConfigure display", NULL);
