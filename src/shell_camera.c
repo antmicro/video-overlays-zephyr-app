@@ -319,6 +319,36 @@ static int cmd_ov2640_set_vertical_flip(const struct shell *shell, size_t argc,
 	return err | ret;
 }
 
+static int cmd_ov2640_set_clock_div(const struct shell *shell, size_t argc,
+				 char **argv)
+{
+	int err = 0, ret = 0;
+    int arg = atoi(argv[1]);
+
+	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
+		shell_print(shell, "ov2640 (both) - set clock divider to %s...", argv[1]);
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CLK_DIV, &arg);
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CLK_DIV, &arg);
+	} else if (!strcmp(argv[2], "left")) {
+		shell_print(shell, "ov2640 (left) - set clock divider to %s...", argv[1]);
+		ret |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CLK_DIV, &arg);
+	} else if (!strcmp(argv[2], "right")) {
+		shell_print(shell, "ov2640 (right) - set clock divider to %s...", argv[1]);
+		ret |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CLK_DIV, &arg);
+	} else {
+		shell_error(shell, "Wrong function parameters.");
+		err = -1;
+	}
+
+	if (err) {
+		shell_error(shell, "ov2640 - set clock divider failed, error: %d, ret: %d", err, ret);
+	}
+
+	shell_print(shell, "Finished.");
+
+	return err | ret;
+}
+
 static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
 			      char **argv)
 {
@@ -499,6 +529,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_CMD_ARG(hflip, NULL, "\t[1|0] Enable/disable horizontal flip", cmd_ov2640_set_horizontal_mirror, 2, 1),
 	SHELL_CMD_ARG(vflip, NULL, "\t[1|0] Enable/disable vertical flip", cmd_ov2640_set_vertical_flip, 2, 1),
 	SHELL_CMD_ARG(resolution, NULL, "\t[width height] Set resolution", cmd_ov2640_set_resolution, 3, 1),
+	SHELL_CMD_ARG(clock_div, NULL, "\t(1 to 64) Set camera clock divider", cmd_ov2640_set_clock_div, 2, 1),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
