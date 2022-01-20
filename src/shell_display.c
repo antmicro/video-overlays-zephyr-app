@@ -128,8 +128,22 @@ struct video_timing vt640x480_60Hz = {
 
 };
 
+void hdmi_reset_sequence()
+{
+	hdmi_out0_reset_regs();
+	k_msleep(50);
+	hdmi_out0_reset_write(1);
+	k_msleep(50);
+	hdmi_out0_reset_write(0);
+	k_msleep(50);
+	hdmi_out0_reset_regs();
+	k_msleep(50);
+}
+
 static int cmd_display_set_resolution_1920x1080_60Hz(const struct shell *shell, size_t argc, char **argv)
 {
+	hdmi_reset_sequence();
+
 	hdmi_out0_core_initiator_enable_write(0);
 	hdmi_out0_driver_clocking_mmcm_reset_write(1);
 
@@ -149,6 +163,8 @@ static int cmd_display_set_resolution_1920x1080_60Hz(const struct shell *shell, 
 
 static int cmd_display_set_resolution_1280x720_60Hz(const struct shell *shell, size_t argc, char **argv)
 {
+	hdmi_reset_sequence();
+
 	hdmi_out0_core_initiator_enable_write(0);
 	hdmi_out0_driver_clocking_mmcm_reset_write(1);
 
@@ -168,6 +184,8 @@ static int cmd_display_set_resolution_1280x720_60Hz(const struct shell *shell, s
 
 static int cmd_display_set_resolution_1600x1200_60Hz(const struct shell *shell, size_t argc, char **argv)
 {
+	hdmi_reset_sequence();
+
 	hdmi_out0_core_initiator_enable_write(0);
 	hdmi_out0_driver_clocking_mmcm_reset_write(1);
 
@@ -187,6 +205,8 @@ static int cmd_display_set_resolution_1600x1200_60Hz(const struct shell *shell, 
 
 static int cmd_display_set_resolution_1280x1024_60Hz(const struct shell *shell, size_t argc, char **argv)
 {
+	hdmi_reset_sequence();
+
 	hdmi_out0_core_initiator_enable_write(0);
 	hdmi_out0_driver_clocking_mmcm_reset_write(1);
 
@@ -206,6 +226,8 @@ static int cmd_display_set_resolution_1280x1024_60Hz(const struct shell *shell, 
 
 static int cmd_display_set_resolution_1024x768_60Hz(const struct shell *shell, size_t argc, char **argv)
 {
+	hdmi_reset_sequence();
+
 	hdmi_out0_core_initiator_enable_write(0);
 	hdmi_out0_driver_clocking_mmcm_reset_write(1);
 
@@ -225,6 +247,8 @@ static int cmd_display_set_resolution_1024x768_60Hz(const struct shell *shell, s
 
 static int cmd_display_set_resolution_800x600_60Hz(const struct shell *shell, size_t argc, char **argv)
 {
+	hdmi_reset_sequence();
+
 	hdmi_out0_core_initiator_enable_write(0);
 	hdmi_out0_driver_clocking_mmcm_reset_write(1);
 
@@ -244,6 +268,8 @@ static int cmd_display_set_resolution_800x600_60Hz(const struct shell *shell, si
 
 static int cmd_display_set_resolution_640x480_75Hz(const struct shell *shell, size_t argc, char **argv)
 {
+	hdmi_reset_sequence();
+
 	hdmi_out0_core_initiator_enable_write(0);
 	hdmi_out0_driver_clocking_mmcm_reset_write(1);
 
