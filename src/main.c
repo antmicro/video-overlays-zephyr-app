@@ -40,24 +40,24 @@ const struct device* fastvdma_dev_gpu_in_2;
 const struct device* fastvdma_dev_gpu_out;
 const struct device* gpio_expander;
 
-uint32_t img_buff_1[800 * 600];
-uint32_t img_buff_2[800 * 600];
-uint32_t img_buff_3[800 * 600];
-uint32_t img_buff_4[800 * 600];
-uint32_t img_buff_5[800 * 600];
-uint32_t img_buff_6[800 * 600];
-uint32_t img_buff_7[800 * 600];
-uint32_t img_buff_8[800 * 600];
-uint32_t img_buff_9[800 * 600];
-uint32_t img_buff_10[800 * 600];
+uint32_t img_buff_1[1280 * 1024];
+uint32_t img_buff_2[1280 * 1024];
+uint32_t img_buff_3[1280 * 1024];
+uint32_t img_buff_4[1280 * 1024];
+uint32_t img_buff_5[1280 * 1024];
+uint32_t img_buff_6[1280 * 1024];
+uint32_t img_buff_7[1280 * 1024];
+uint32_t img_buff_8[1280 * 1024];
+uint32_t img_buff_9[1280 * 1024];
+uint32_t img_buff_10[1280 * 1024];
 
-uint32_t* hdmi_buffers1[3] = {&img_buff_1, &img_buff_2, &img_buff_3};
-uint32_t* hdmi_buffers2[3] = {&img_buff_4, &img_buff_5, &img_buff_6};
-uint32_t* hdmi_buffers3[3] = {&img_buff_7, &img_buff_8, &img_buff_9};
+uint32_t* hdmi_buffers1[3] = {img_buff_1, img_buff_2, img_buff_3};
+uint32_t* hdmi_buffers2[3] = {img_buff_4, img_buff_5, img_buff_6};
+uint32_t* hdmi_buffers3[3] = {img_buff_7, img_buff_8, img_buff_9};
 
-uint32_t image_with_text[800 * 600];
-uint32_t img_length_1 = 800 * 600;
-uint32_t img_length_2 = 800 * 600;
+uint32_t image_with_text[1280 * 1024];
+uint32_t img_length_1 = 1280 * 1024;
+uint32_t img_length_2 = 1280 * 1024;
 
 int cam1_buffer_index = 0;
 int cam2_buffer_index = 0;

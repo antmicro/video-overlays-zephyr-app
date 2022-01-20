@@ -1,6 +1,7 @@
 #include <zephyr.h>
 #include <shell/shell.h>
 #include <drivers/video.h>
+#include <stdlib.h>
 
 #include "hdmi.h"
 #include "pattern.h"
