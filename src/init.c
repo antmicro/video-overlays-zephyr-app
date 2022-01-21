@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <kernel.h>
 #include "init.h"
-// #include "hdmi.h"
 #include "shell_tests.h"
 
 int hdmi_buffer_index = 0;
@@ -15,27 +14,22 @@ bool callback_gpu_block = false;
 void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
-	switch (cam1_buffer_index)
+	switch (cam_buffer_index)
 	{
 	case 0:
 		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-		dma_start(fastvdma_dev_cam_1, 0);
-		cam1_buffer_index = 2;
+		cam_buffer_index = 2;
 		break;
 	case 1:
 		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-		dma_start(fastvdma_dev_cam_1, 0);
-		cam1_buffer_index = 0;
+		cam_buffer_index = 0;
 		break;
 	case 2:
 		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
 		dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-		dma_start(fastvdma_dev_cam_1, 0);
-		cam1_buffer_index = 1;
-		break;
-	default:
+		cam_buffer_index = 1;
 		break;
 	}
 }
@@ -50,25 +44,22 @@ void cam1_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
 void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
-
-	switch (cam1_buffer_index)
+	switch (cam_buffer_index)
 	{
 	case 0:
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_4;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
-		cam2_buffer_index = 2;
+		cam_buffer_index = 2;
 		break;
 	case 1:
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_5;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
-		cam2_buffer_index = 0;
+		cam_buffer_index = 0;
 		break;
 	case 2:
-		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_6;
+		dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
 		dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
-		cam2_buffer_index = 1;
-		break;
-	default:
+		cam_buffer_index = 1;
 		break;
 	}
 }
@@ -207,13 +198,9 @@ void hdmi(void)
 	while (true) {
 		hdmi_out0_core_initiator_enable_write(1);
 		switch (mode) {
-		case cam1:
+		case cams:
 			hdmi_out0_core_initiator_base_write(
-				(uint32_t)hdmi_buffers1[cam1_buffer_index]);
-			break;
-		case cam2:
-			hdmi_out0_core_initiator_base_write(
-				(uint32_t)hdmi_buffers2[cam2_buffer_index]);
+				(uint32_t)hdmi_buffers1[cam_buffer_index]);
 			break;
 		case overlay:
 			hdmi_out0_core_initiator_base_write(

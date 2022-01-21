@@ -12,6 +12,46 @@
 #include "net.h"
 #include "hdmi.h"
 
+static int set_bypass(const struct shell *sh, shell_bypass_cb_t bypass)
+{
+	static bool in_use;
+
+	if (bypass && in_use) {
+		shell_error(sh, "Display supports setting bypass on a single instance");
+		return -EBUSY;
+	}
+
+	in_use = !in_use;
+	if (in_use) {
+		shell_print(sh, "Displaying...\npress ctrl-x escape");
+		in_use = true;
+	}
+
+	shell_set_bypass(sh, bypass);
+
+	return 0;
+}
+
+static void bypass_cb(const struct shell *sh, uint8_t *recv, size_t len)
+{
+	bool escape = false;
+
+	if (recv[len - 1] == CHAR_CAN ) {
+		escape = true;
+	} 
+
+	if (escape) {
+		k_thread_suspend(hdmi_id);
+		draw_color(800, 600, RGB_BLACK);
+		k_msleep(10);
+		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+		hdmi_out0_core_initiator_enable_write(1);
+		shell_print(sh, "Exiting...");
+		set_bypass(sh, NULL);
+		return;
+	}
+}
+
 void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
 {
 	/* Configure DMAs */
@@ -84,57 +124,17 @@ static int display_buffer2(const struct shell *shell, size_t argc, char **argv)
 	shell_print(shell, "Displaying image from camera 2");
 	k_msleep(600);
 	dma_stop(fastvdma_dev_cam_2, 0);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_4);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
 	return 0;
-}
-
-static int set_bypass(const struct shell *sh, shell_bypass_cb_t bypass)
-{
-	static bool in_use;
-
-	if (bypass && in_use) {
-		shell_error(sh, "Display supports setting bypass on a single instance");
-		return -EBUSY;
-	}
-
-	in_use = !in_use;
-	if (in_use) {
-		shell_print(sh, "Displaying...\npress ctrl-x escape");
-		in_use = true;
-	}
-
-	shell_set_bypass(sh, bypass);
-
-	return 0;
-}
-
-static void bypass_cb(const struct shell *sh, uint8_t *recv, size_t len)
-{
-	bool escape = false;
-
-	if (recv[len - 1] == CHAR_CAN ) {
-		escape = true;
-	} 
-
-	if (escape) {
-		k_thread_suspend(hdmi_id);
-		draw_color(800, 600, RGB_BLACK);
-		k_msleep(10);
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
-		hdmi_out0_core_initiator_enable_write(1);
-		shell_print(sh, "Exiting...");
-		set_bypass(sh, NULL);
-		return;
-	}
 }
 
 static int display_video_cam1(const struct shell *shell, size_t argc, char **argv)
 {
+	dma_stop(fastvdma_dev_cam_2, 0);
 	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-	dma_stop(fastvdma_dev_cam_2, 0);
 	dma_start(fastvdma_dev_cam_1, 0);
-	mode = cam1;
+	mode = cams;
 	k_thread_resume(hdmi_id);
 	set_bypass(shell, bypass_cb);
 	return 0;
@@ -142,11 +142,11 @@ static int display_video_cam1(const struct shell *shell, size_t argc, char **arg
 
 static int display_video_cam2(const struct shell *shell, size_t argc, char **argv)
 {
+	dma_stop(fastvdma_dev_cam_1, 0);
 	dma_cfg_cam2.dma_callback = cam2_dma_user_callback;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
-	dma_stop(fastvdma_dev_cam_1, 0);
 	dma_start(fastvdma_dev_cam_2, 0);
-	mode = cam2;
+	mode = cams;
 	k_thread_resume(hdmi_id);
 	set_bypass(shell, bypass_cb);
 	return 0;
