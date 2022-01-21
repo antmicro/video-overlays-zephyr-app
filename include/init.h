@@ -27,7 +27,6 @@ extern uint32_t* hdmi_buffers3[3];
 extern int cam1_buffer_index;
 extern int cam2_buffer_index;
 extern int gpu_buffer_index;
-// extern int hdmi_buffer_index;
 
 extern int block_buff[3];
 extern int blocked_buff_gpu;
@@ -38,12 +37,6 @@ extern bool callback_gpu_block;
 extern const k_tid_t cam_id;
 extern const k_tid_t gpu_id;
 extern const k_tid_t hdmi_id;
-
-// extern int block_buff[3];
-// extern int blocked_buff_gpu;
-// extern int blocked_buff_cam1;
-// extern bool callback_cam_block;
-// extern bool callback_gpu_block;
 
 extern enum mode mode;
 extern struct k_sem my_sem;
