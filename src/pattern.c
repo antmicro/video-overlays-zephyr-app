@@ -27,7 +27,7 @@ void draw_pattern(int h_active, int v_active)
 		if (i % (h_active / 32) == 0)
 			color = inc_color(color);
 		if (color >= 0)
-			img_buff_10[i] = color_bar[color];
+			img_buff_7[i] = color_bar[color];
 	}
 }
 
@@ -35,7 +35,7 @@ void draw_color(int h_active, int v_active, int color)
 {
 	/* color bar pattern */
 	for (int i = 0; i < h_active * v_active; i++) {
-			img_buff_10[i] = color;
+			img_buff_7[i] = color;
 	}
 }
 
@@ -48,10 +48,10 @@ void draw_image(int h_active, int v_active)
 				temp++;
 			}
 			if(temp % 2 == 0){
-				img_buff_10[i] = RGB_GREEN;
+				img_buff_7[i] = RGB_GREEN;
 			}
 			else{
-				img_buff_10[i] = RGB_RED;
+				img_buff_7[i] = RGB_RED;
 			}
 	}
 }

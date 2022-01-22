@@ -46,7 +46,7 @@ static void bypass_cb_cams(const struct shell *sh, uint8_t *recv, size_t len)
 		dma_stop(fastvdma_dev_cam_2, 0);
 		draw_color(fmt_1.width , fmt_1.height, RGB_BLACK);
 		k_msleep(10);
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 		hdmi_out0_core_initiator_enable_write(1);
 		shell_print(sh, "Exiting...");
 		set_bypass(sh, NULL);
@@ -74,7 +74,7 @@ static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 		k_msleep(10);
 		draw_color(fmt_1.width , fmt_1.height, RGB_BLACK);
 		k_msleep(10);
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 		hdmi_out0_core_initiator_enable_write(1);
 		shell_print(sh, "Exiting...");
 		k_sem_reset(&my_sem);
@@ -117,55 +117,63 @@ void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
 	dma_start(fastvdma_dev_gpu_out, 0);
 }
 
-static int display_colors(const struct shell *shell, size_t argc, char **argv)
+static int cmd_display_colors(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
 	draw_color(fmt_1.height, fmt_1.width, RGB_RED);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 
 	k_msleep(1000);
 	draw_color(fmt_1.height, fmt_1.width, RGB_GREEN);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 
 	k_msleep(1000);
 	draw_color(fmt_1.height, fmt_1.width, RGB_BLUE);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 
     return 0;
 }
 
-static int display_buffer1(const struct shell *shell, size_t argc, char **argv)
+void display_buffer1()
 {
-	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
+	/* disable loop mode */
+	dma_block_cfg_cam.source_gather_en = 0;
+	dma_block_cfg_cam.dest_scatter_en = 0;
+	dma_cfg_cam1.dma_callback = NULL;
+	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-	dma_stop(fastvdma_dev_cam_2, 0);
 	dma_start(fastvdma_dev_cam_1, 0);
 	hdmi_out0_core_initiator_enable_write(1);
-	shell_print(shell, "Displaying image from camera 1");
-	k_msleep(600);
-	dma_stop(fastvdma_dev_cam_1, 0);
 	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
-	return 0;
+
+	/* enable loop mode */
+	dma_block_cfg_cam.source_gather_en = 1;
+	dma_block_cfg_cam.dest_scatter_en = 1;
 }
 
-static int display_buffer2(const struct shell *shell, size_t argc, char **argv)
+void display_buffer2()
 {
-	dma_cfg_cam2.dma_callback = cam2_dma_user_callback;
+	/* disable loop mode */
+	dma_block_cfg_cam.source_gather_en = 0;
+	dma_block_cfg_cam.dest_scatter_en = 0;
+	dma_cfg_cam2.dma_callback = NULL;
+	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
-	dma_stop(fastvdma_dev_cam_1, 0);
 	dma_start(fastvdma_dev_cam_2, 0);
 	hdmi_out0_core_initiator_enable_write(1);
-	shell_print(shell, "Displaying image from camera 2");
-	k_msleep(600);
-	dma_stop(fastvdma_dev_cam_2, 0);
 	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
-	return 0;
+
+	/* enable loop mode */
+	dma_block_cfg_cam.source_gather_en = 1;
+	dma_block_cfg_cam.dest_scatter_en = 1;
 }
 
-static int display_video_cam1(const struct shell *shell, size_t argc, char **argv)
+void display_video_cam1()
 {
 	suspend_hdmi = false;
 
@@ -174,11 +182,9 @@ static int display_video_cam1(const struct shell *shell, size_t argc, char **arg
 	dma_start(fastvdma_dev_cam_1, 0);
 	mode = cams;
 	k_thread_resume(hdmi_id);
-	set_bypass(shell, bypass_cb_cams);
-	return 0;
 }
 
-static int display_video_cam2(const struct shell *shell, size_t argc, char **argv)
+void display_video_cam2()
 {
 	suspend_hdmi = false;
 
@@ -187,11 +193,9 @@ static int display_video_cam2(const struct shell *shell, size_t argc, char **arg
 	dma_start(fastvdma_dev_cam_2, 0);
 	mode = cams;
 	k_thread_resume(hdmi_id);
-	set_bypass(shell, bypass_cb_cams);
-	return 0;
 }
 
-static int display_video_with_overlay_cam1(const struct shell *shell, size_t argc, char **argv)
+void display_video_with_overlay_cam1()
 {
 	suspend_gpu = false;
 	suspend_cam = false;
@@ -213,15 +217,11 @@ static int display_video_with_overlay_cam1(const struct shell *shell, size_t arg
 	k_thread_resume(cam_id);
 	k_thread_resume(gpu_id);
 	
-	char *text = "2021-11-25 10:00";
-	generate_image_with_text(image_with_text, text, fmt_1.width, fmt_1.height);
-	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
-
-	set_bypass(shell, bypass_cb_overlay);
-	return 0;
+	generate_image_with_text(image_with_text, fmt_1.width, fmt_1.height);
+	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
 }
 
-static int display_video_with_overlay_cam2(const struct shell *shell, size_t argc, char **argv)
+void display_video_with_overlay_cam2()
 {
 	suspend_gpu = false;
 	suspend_cam = false;
@@ -242,31 +242,23 @@ static int display_video_with_overlay_cam2(const struct shell *shell, size_t arg
 	k_thread_resume(hdmi_id);
 	k_thread_resume(cam_id);
 	k_thread_resume(gpu_id);
-	char *text = "2021-11-25 10:00";
-	generate_image_with_text(image_with_text, text, fmt_1.width, fmt_1.height);
-	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
-
-	set_bypass(shell, bypass_cb_overlay);
-	return 0;
+	generate_image_with_text(image_with_text, fmt_2.width, fmt_2.height);
+	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
 }
 
-static int display_image_with_overlay(const struct shell *shell, size_t argc, char **argv)
+static int cmd_display_image_with_overlay(const struct shell *shell, size_t argc, char **argv)
 {
-	char *text = "2021-11-25 10:00";
-
 	hdmi_out0_core_initiator_enable_write(1);
-	flush_l2_cache();
 	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 	dma_start(fastvdma_dev_cam_1, 0);
 	k_msleep(300);
 	dma_stop(fastvdma_dev_cam_1, 0);
-	generate_image_with_text((uint32_t*)&image_with_text, text, fmt_1.width, fmt_1.height);
-	// k_msleep(1000);
-	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_10);
+	generate_image_with_text((uint32_t*)&image_with_text, fmt_1.width, fmt_1.height);
+	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
 
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 
 	return 0;
 }
@@ -274,12 +266,59 @@ static int display_image_with_overlay(const struct shell *shell, size_t argc, ch
 static int cmd_generate_and_send_overlay(const struct shell *shell, size_t argc,
 				char **argv)
 {
-	char *text = "2021-10-27 9:31";
-
-	generate_image_with_text((uint32_t*)&image_with_text, text, fmt_1.width, fmt_1.height);
+	generate_image_with_text((uint32_t*)&image_with_text, fmt_1.width, fmt_1.height);
 
 	shell_print(shell, "send generated image...");
 	send_image((uint32_t*)&image_with_text, img_length_1);
+
+	return 0;
+}
+
+static int cmd_display_buffer(const struct shell *shell, size_t argc, char **argv)
+{
+	if (!strcmp(argv[1], "left")) {
+		shell_print(shell, "Displaying single buffer of LEFT camera...");
+		display_buffer1();
+	} else if (!strcmp(argv[1], "right")) {
+		shell_print(shell, "Displaying single buffer of RIGHT camera...");
+		display_buffer2();
+	} else {
+		shell_error(shell, "Wrong function parameters.");
+	}
+
+	return 0;
+}
+
+static int cmd_display_video(const struct shell *shell, size_t argc, char **argv)
+{
+	if (!strcmp(argv[1], "left")) {
+		shell_print(shell, "Displaying stream from LEFT camera...");
+		display_video_cam1();
+		set_bypass(shell, bypass_cb_cams);
+	} else if (!strcmp(argv[1], "right")) {
+		shell_print(shell, "Displaying stream from RIGHT camera...");
+		display_video_cam2();
+		set_bypass(shell, bypass_cb_cams);
+	} else {
+		shell_error(shell, "Wrong function parameters.");
+	}
+
+	return 0;
+}
+
+static int cmd_display_video_with_overlay(const struct shell *shell, size_t argc, char **argv)
+{
+	if (!strcmp(argv[1], "left")) {
+		shell_print(shell, "Displaying stream from LEFT camera with applied overlay...");
+		display_video_with_overlay_cam1();
+		set_bypass(shell, bypass_cb_overlay);
+	} else if (!strcmp(argv[1], "right")) {
+		shell_print(shell, "Displaying stream from RIGHT camera with applied overlay...");
+		display_video_with_overlay_cam2();
+		set_bypass(shell, bypass_cb_overlay);
+	} else {
+		shell_error(shell, "Wrong function parameters.");
+	}
 
 	return 0;
 }
@@ -288,32 +327,19 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_test,
 	SHELL_CMD_ARG(display_colors, NULL,
 		"\tDisplay red, green and blue image in 800x600 resolution with 2s"
-		"delay between each other. It DOES NOT change HDMI resolution.", display_colors, 1, 0),
-	SHELL_CMD_ARG(display_buffer1, NULL,
-		"\tDisplay content of buffer1."
-		"It DOES NOT change HDMI resolution.", display_buffer1, 1, 0),
-	SHELL_CMD_ARG(display_buffer2, NULL,
-		"\tDisplay content of buffer2."
-		"It DOES NOT change HDMI resolution.", display_buffer2, 1, 0),
-	SHELL_CMD_ARG(display_video_cam1, NULL,
-		"\tDisplay pictures captured by left camera in continous mode."
-		"It DOES NOT change HDMI resolution."
-		"WARNING: This test is blocking, you can stop this after invoke!", display_video_cam1, 1, 0),
-	SHELL_CMD_ARG(display_video_cam2, NULL,
-		"\tDisplay pictures captured by right camera in continous mode."
-		"It DOES NOT change HDMI resolution."
-		"WARNING: This test is blocking, you can stop this after invoke!", display_video_cam2, 1, 0),
-	SHELL_CMD_ARG(display_video_with_overlay_cam1, NULL,
-		"\tDisplay pictures captured by left camera with overlayed applied on them"
-		"in continous mode. It DOES NOT change HDMI resolution."
-		"WARNING: This test is blocking, you can stop this after invoke!", display_video_with_overlay_cam1, 1, 0),
-	SHELL_CMD_ARG(display_video_with_overlay_cam2, NULL,
-		"\tDisplay pictures captured by right camera with overlayed applied on them"
-		"in continous mode. It DOES NOT change HDMI resolution."
-		"WARNING: This test is blocking, you can stop this after invoke!", display_video_with_overlay_cam2, 1, 0),
+		"delay between each other. It DOES NOT change HDMI resolution.", cmd_display_colors, 1, 0),
+	SHELL_CMD_ARG(display_buffer, NULL,
+		"\tDisplay content of camera buffer. Choose between 'left' or 'right' camera."
+		"It DOES NOT change HDMI resolution.", cmd_display_buffer, 2, 0),
+	SHELL_CMD_ARG(display_video, NULL,
+		"\tDisplay images captured by choosed camera as a stream. Choose between 'left' or"
+		" 'right' camera. It DOES NOT change HDMI resolution.", cmd_display_video, 2, 0),
+	SHELL_CMD_ARG(display_video_with_overlay, NULL,
+		"\tDisplay images captured by choosed camera as a stream with an overlay applied on them"
+		"It DOES NOT change HDMI resolution.", cmd_display_video_with_overlay, 2, 0),
 	SHELL_CMD_ARG(display_image_with_overlay, NULL,
 		"\tDisplay single picture captured by left camera with overlaye applied on top of it."
-		"It DOES NOT change HDMI resolution.", display_image_with_overlay, 1, 0),
+		"It DOES NOT change HDMI resolution.", cmd_display_image_with_overlay, 1, 0),
 	SHELL_CMD_ARG(generate_and_send_overlay, NULL,
 		"\tGenerate an overlay image. Text is fixed to \"2021-10-27 9:31\""
 		"After successful generation it is sent via UDP at 192.0.2.2."

@@ -12,10 +12,10 @@ extern const struct device* fastvdma_dev_gpu_out;
 extern uint32_t img_buff_1[1280 * 1024];
 extern uint32_t img_buff_2[1280 * 1024];
 extern uint32_t img_buff_3[1280 * 1024];
+extern uint32_t img_buff_4[1280 * 1024];
+extern uint32_t img_buff_5[1280 * 1024];
+extern uint32_t img_buff_6[1280 * 1024];
 extern uint32_t img_buff_7[1280 * 1024];
-extern uint32_t img_buff_8[1280 * 1024];
-extern uint32_t img_buff_9[1280 * 1024];
-extern uint32_t img_buff_10[1280 * 1024];
 extern uint32_t* hdmi_buffers[3];
 extern uint32_t* hdmi_buffers_overlay[3];
 extern uint32_t img_length_1;
@@ -44,8 +44,10 @@ extern bool suspend_cam;
 extern bool suspend_gpu;
 
 extern enum mode{cams, overlay} mode;
-
 extern enum mode mode;
+
+extern char* overlay_text;
+
 extern struct k_sem my_sem;
 
 #define IMG2_HEIGHT 800U

@@ -153,7 +153,7 @@ static int cmd_display_set_resolution_1920x1080_60Hz(const struct shell *shell, 
 
 	draw_color(1920, 1080, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 1920x1080 @ 60Hz frequency set!\n");
@@ -174,7 +174,7 @@ static int cmd_display_set_resolution_1280x720_60Hz(const struct shell *shell, s
 
 	draw_color(1280, 720, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 1280x720 @ 60Hz frequency set!\n");
@@ -195,7 +195,7 @@ static int cmd_display_set_resolution_1600x1200_60Hz(const struct shell *shell, 
 
 	draw_color(1600, 1200, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 1600x1200 @ 60Hz frequency set!\n");
@@ -217,7 +217,7 @@ static int cmd_display_set_resolution_1280x1024_60Hz(const struct shell *shell, 
 
 	draw_color(1280, 1024, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 1280x1024 @ 60Hz frequency set!\n");
@@ -238,7 +238,7 @@ static int cmd_display_set_resolution_1024x768_60Hz(const struct shell *shell, s
 
 	draw_color(1024, 768, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 1024x768 @ 60Hz frequency set!\n");
@@ -259,7 +259,7 @@ static int cmd_display_set_resolution_800x600_60Hz(const struct shell *shell, si
 
 	draw_color(800, 600, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 800x600 @ 60Hz frequency set!\n");
@@ -280,7 +280,7 @@ static int cmd_display_set_resolution_640x480_75Hz(const struct shell *shell, si
 
 	draw_color(640, 480, RGB_BLACK);
 	k_msleep(10);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 	hdmi_out0_core_initiator_enable_write(1);
 
 	shell_print(shell, "\nResoluton 640x480 @ 75Hz frequency set!\n");

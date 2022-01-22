@@ -3,15 +3,21 @@
 
 #include "font.h"
 
-void generate_image_with_text(uint32_t image_with_text[], char* text, int width, int height)
+extern char overlay_text[25];
+
+void generate_image_with_text(uint32_t image_with_text[], int width, int height)
 {
 	int color = 0xff000000; // black
-	int text_len = strlen(text);
+	int text_len = strlen(overlay_text);
+
+	for (int i = 0; i < width * height; i++) {
+		image_with_text[i] = 0;
+	}
 
 	for(int k = 0; k < text_len; k++) {
 		int v_offset;
 		int h_offset = 10;
-		int character = text[k] - ' ';
+		int character = overlay_text[k] - ' ';
 
 		if(width < 480) {
 			v_offset = height - 30;

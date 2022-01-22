@@ -16,6 +16,8 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
 
+#include "net.h"
+
 #define OV2640_1 "OV2640_1"
 #define OV2640_2 "OV2640_2"
 #define FASTVDMA_1 "FASTVDMA_1"
@@ -47,13 +49,13 @@ const struct device *gpio_expander;
 uint32_t img_buff_1[1280 * 1024];
 uint32_t img_buff_2[1280 * 1024];
 uint32_t img_buff_3[1280 * 1024];
+uint32_t img_buff_4[1280 * 1024];
+uint32_t img_buff_5[1280 * 1024];
+uint32_t img_buff_6[1280 * 1024];
 uint32_t img_buff_7[1280 * 1024];
-uint32_t img_buff_8[1280 * 1024];
-uint32_t img_buff_9[1280 * 1024];
-uint32_t img_buff_10[1280 * 1024];
 
 uint32_t* hdmi_buffers[3] = {img_buff_1, img_buff_2, img_buff_3};
-uint32_t* hdmi_buffers_overlay[3] = {img_buff_7, img_buff_8, img_buff_9};
+uint32_t* hdmi_buffers_overlay[3] = {img_buff_4, img_buff_5, img_buff_6};
 
 uint32_t image_with_text[1280 * 1024];
 uint32_t img_length_1 = 1280 * 1024;
@@ -76,6 +78,8 @@ struct dma_block_config dma_block_cfg_gpu_out = { 0 };
 
 enum mode {cams, overlay } mode;
 enum mode mode = cams;
+
+char overlay_text[25] = "Video Overlays 2022";
 
 const k_tid_t hdmi_id;
 const k_tid_t cam_id;
