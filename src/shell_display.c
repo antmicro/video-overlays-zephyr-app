@@ -131,14 +131,14 @@ struct video_timing vt640x480_60Hz = {
 void hdmi_reset_sequence()
 {
 	hdmi_out0_reset_regs();
-	k_msleep(50);
-	hdmi_out0_reset_write(1);
-	k_msleep(50);
-	hdmi_out0_reset_write(0);
-	k_msleep(50);
-	hdmi_out0_reset_regs();
-	k_msleep(50);
+	k_msleep(10);
+	hdmi_out0_core_initiator_enable_write(1);
+	k_msleep(10);
+	hdmi_out0_core_initiator_enable_write(0);
+	k_msleep(10);
 }
+
+/* These resolutions are not needed for now so lets just comment them out to avoid compilation warnings
 
 static int cmd_display_set_resolution_1920x1080_60Hz(const struct shell *shell, size_t argc, char **argv)
 {
@@ -202,6 +202,7 @@ static int cmd_display_set_resolution_1600x1200_60Hz(const struct shell *shell, 
 
 	return 0;
 }
+*/
 
 static int cmd_display_set_resolution_1280x1024_60Hz(const struct shell *shell, size_t argc, char **argv)
 {
@@ -316,9 +317,9 @@ static int cmd_hdmi_status(const struct shell *shell, size_t argc, char **argv)
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_display_resolution,
-	SHELL_CMD_ARG(mode_1920x1080_60Hz, NULL, "\t1920x1080_60Hz", cmd_display_set_resolution_1920x1080_60Hz, 1, 0),
-	SHELL_CMD_ARG(mode_1280x720_60Hz,  NULL, "\t1280x720_60Hz",  cmd_display_set_resolution_1280x720_60Hz,  1, 0),
-	SHELL_CMD_ARG(mode_1600x1200_60Hz, NULL, "\t1600x1200_60Hz", cmd_display_set_resolution_1600x1200_60Hz,  1, 0),
+	// SHELL_CMD_ARG(mode_1920x1080_60Hz, NULL, "\t1920x1080_60Hz", cmd_display_set_resolution_1920x1080_60Hz, 1, 0),
+	// SHELL_CMD_ARG(mode_1280x720_60Hz,  NULL, "\t1280x720_60Hz",  cmd_display_set_resolution_1280x720_60Hz,  1, 0),
+	// SHELL_CMD_ARG(mode_1600x1200_60Hz, NULL, "\t1600x1200_60Hz", cmd_display_set_resolution_1600x1200_60Hz,  1, 0),
 	SHELL_CMD_ARG(mode_1280x1024_60Hz, NULL, "\t1280x1024_60Hz", cmd_display_set_resolution_1280x1024_60Hz,  1, 0),
 	SHELL_CMD_ARG(mode_1024x768_60Hz,  NULL, "\t1024x768_60Hz",  cmd_display_set_resolution_1024x768_60Hz,  1, 0),
 	SHELL_CMD_ARG(mode_800x600_60Hz,   NULL, "\t800x600_60Hz",   cmd_display_set_resolution_800x600_60Hz,   1, 0),
@@ -329,8 +330,8 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_display,
 	SHELL_CMD(set_resolution, &sub_display_resolution,
 						"Resolutions:\n"
-						"1920x1080_60Hz\t"
-						"1280x720_60Hz\t"
+						// "1920x1080_60Hz\t"
+						// "1280x720_60Hz\t"
 						"1024x768_60Hz\t"
 						"800x600_60Hz\t"
 						"640x480_75Hz\n", NULL),
