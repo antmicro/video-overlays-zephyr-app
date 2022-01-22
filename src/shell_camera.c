@@ -10,6 +10,105 @@
 #include "net.h"
 #include "shell_tests.h"
 
+void print_camera_status(const struct shell *shell)
+{
+	shell_print(shell, " - (OV2640_1) Current format: %c%c%c%c %ux%u\n", (char)fmt_1.pixelformat,
+	       (char)(fmt_1.pixelformat >> 8),
+	       (char)(fmt_1.pixelformat >> 16),
+	       (char)(fmt_1.pixelformat >> 24),
+	       fmt_1.width, fmt_1.height);
+
+	shell_print(shell, " - (OV2640_2) Current format: %c%c%c%c %ux%u\n", (char)fmt_2.pixelformat,
+	       (char)(fmt_2.pixelformat >> 8),
+	       (char)(fmt_2.pixelformat >> 16),
+	       (char)(fmt_2.pixelformat >> 24),
+	       fmt_2.width, fmt_2.height);
+}
+
+int ov2640_set_resolution(const struct shell *shell, int w, int h, char* camera)
+{
+	int ret = 0;
+	int i = 0;
+
+	if(!strcmp(camera, "both") || !strcmp(camera, "")) {
+		while (caps.format_caps[i].pixelformat) {
+			const struct video_format_cap *fcap = &caps.format_caps[i];
+			if (fcap->width_min == w && fcap->height_min == h) {
+				fmt_1.width = w;
+				fmt_1.height = h;
+				img_length_1 = w * h;
+
+				fmt_2.width = w;
+				fmt_2.height = h;
+				img_length_2 = w * h;
+
+				/* set image height */
+				dma_block_cfg_cam.source_gather_count = h;
+				dma_block_cfg_cam.dest_scatter_count = h;
+
+				/*set block size, driver will get image width from that */
+				dma_block_cfg_cam.block_size = w * h;
+
+				dma_block_cfg_cam.source_address = 0;
+				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+
+				dma_block_cfg_cam.source_address = 0;
+				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
+				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+			}
+			i++;
+		}
+		ret |= video_set_format(ov2640_dev_1, VIDEO_EP_OUT, &fmt_1);
+	} else if(!strcmp(camera, "left")) {
+		while (caps.format_caps[i].pixelformat) {
+			const struct video_format_cap *fcap = &caps.format_caps[i];
+			if (fcap->width_min == w && fcap->height_min == h) {
+				fmt_1.width = w;
+				fmt_1.height = h;
+				img_length_1 = w * h;
+
+				/* set image height */
+				dma_block_cfg_cam.source_gather_count = h;
+				dma_block_cfg_cam.dest_scatter_count = h;
+
+				/*set block size, driver will get image width from that */
+				dma_block_cfg_cam.block_size = w * h;
+				dma_block_cfg_cam.source_address = 0;
+				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+			}
+			i++;
+		}
+		ret |= video_set_format(ov2640_dev_1, VIDEO_EP_OUT, &fmt_1);
+	} else if (!strcmp(camera, "right")) {
+		while (caps.format_caps[i].pixelformat) {
+			const struct video_format_cap *fcap = &caps.format_caps[i];
+			if (fcap->width_min == w && fcap->height_min == h) {
+				fmt_2.width = w;
+				fmt_2.height = h;
+				img_length_2 = w * h;
+
+				/* set image height */
+				dma_block_cfg_cam.source_gather_count = h;
+				dma_block_cfg_cam.dest_scatter_count = h;
+
+				/*set block size, driver will get image width from that */
+				dma_block_cfg_cam.block_size = w * h;
+				dma_block_cfg_cam.source_address = 0;
+				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
+				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+			}
+			i++;
+		}
+		ret |= video_set_format(ov2640_dev_1, VIDEO_EP_OUT, &fmt_1);
+	} else {
+		shell_error(shell, "Can't recognize camera, please choose between 'left', 'right' or 'both' keyword.");
+	}
+
+	return ret;
+}
+
 static int cmd_ov2640_set_brightness(const struct shell *shell, size_t argc,
 			      char **argv)
 {
@@ -349,110 +448,92 @@ static int cmd_ov2640_set_clock_div(const struct shell *shell, size_t argc,
 	return err | ret;
 }
 
-static int cmd_ov2640_set_resolution(const struct shell *shell, size_t argc,
+static int cmd_ov2640_set_res_640_480(const struct shell *shell, size_t argc,
 			      char **argv)
 {
-	int err = 0, ret = 0;
-	int i = 0;
-    int width = atoi(argv[1]), height = atoi(argv[2]);
+	int ret = 0;
 
-	if (argc == 3 || (argc == 4 && !strcmp(argv[3], "both"))) {
-		shell_print(shell, "ov2640 (both) - set resolution to %sx%s...", argv[1], argv[2]);
-		while (caps.format_caps[i].pixelformat) {
-			const struct video_format_cap *fcap = &caps.format_caps[i];
-			if (fcap->width_min == width && fcap->height_min == height) {
-				fmt_1.width = width;
-				fmt_1.height = height;
-				fmt_2.width = width;
-				fmt_2.height = height;
-				img_length_1 = width * height;
-				img_length_2 = width * height;
-				
-				/* set image height */
-				dma_block_cfg_cam.source_gather_count = height;
-				dma_block_cfg_cam.dest_scatter_count = height;
-
-				/*set block size, driver will get image width from that */
-				dma_block_cfg_cam.block_size = width * height;
-				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
-			}
-			i++;
-		}
-		ret |= video_set_format(ov2640_dev_1, VIDEO_EP_OUT, &fmt_1);
-		ret |= video_set_format(ov2640_dev_2, VIDEO_EP_OUT, &fmt_2);
-	} else if (strcmp(argv[3], "left")) {
-		shell_print(shell, "ov2640 (left) - set resolution to %sx%s...", argv[1], argv[2]);
-		while (caps.format_caps[i].pixelformat) {
-			const struct video_format_cap *fcap = &caps.format_caps[i];
-			if (fcap->width_min == width && fcap->height_min == height) {
-				fmt_1.width = width;
-				fmt_1.height = height;
-				img_length_1 = width * height;
-				
-				/* set image height */
-				dma_block_cfg_cam.source_gather_count = height;
-				dma_block_cfg_cam.dest_scatter_count = height;
-
-				/*set block size, driver will get image width from that */
-				dma_block_cfg_cam.block_size = width * height;
-				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
-			}
-			i++;
-		}
-		ret |= video_set_format(ov2640_dev_1, VIDEO_EP_OUT, &fmt_1);
-	} else if (strcmp(argv[3], "right")) {
-		shell_print(shell, "ov2640 (right) - set resolution to %sx%s...", argv[1], argv[2]);
-		while (caps.format_caps[i].pixelformat) {
-			const struct video_format_cap *fcap = &caps.format_caps[i];
-			if (fcap->width_min == width && fcap->height_min == height) {
-				fmt_2.width = width;
-				fmt_2.height = width;
-				img_length_2 = width * height;
-				
-				/* set image height */
-				dma_block_cfg_cam.source_gather_count = height;
-				dma_block_cfg_cam.dest_scatter_count = height;
-
-				/*set block size, driver will get image width from that */
-				dma_block_cfg_cam.block_size = width * height;
-				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
-			}
-			i++;
-		}
-		ret |= video_set_format(ov2640_dev_2, VIDEO_EP_OUT, &fmt_2);
+	if (argc < 2) {
+		ret = ov2640_set_resolution(shell, 640, 480, "");
 	} else {
-		shell_error(shell, "Wrong function parameters.");
-		err = -1;
+		ret = ov2640_set_resolution(shell, 640, 480, argv[1]);
 	}
 
-	shell_print(shell, " - (OV2640_1) Current format: %c%c%c%c %ux%u\n", (char)fmt_1.pixelformat,
-	       (char)(fmt_1.pixelformat >> 8),
-	       (char)(fmt_1.pixelformat >> 16),
-	       (char)(fmt_1.pixelformat >> 24),
-	       fmt_1.width, fmt_1.height);
+	print_camera_status(shell);
 
-	shell_print(shell, " - (OV2640_2) Current format: %c%c%c%c %ux%u\n", (char)fmt_2.pixelformat,
-	       (char)(fmt_2.pixelformat >> 8),
-	       (char)(fmt_2.pixelformat >> 16),
-	       (char)(fmt_2.pixelformat >> 24),
-	       fmt_2.width, fmt_2.height);
-
-	if (err | ret) {
-		shell_error(shell, "ov2640 - set resolution failed, error: %d, ret: %d", err, ret);
+	if (ret) {
+		shell_error(shell, "ov2640 - set resolution failed, ret: %d", ret);
 	}
 
 	shell_print(shell, "Finished.");
 
-	return err | ret;
+	return ret;
+}
+
+static int cmd_ov2640_set_res_800_600(const struct shell *shell, size_t argc,
+			      char **argv)
+{
+	int ret = 0;
+
+	if (argc < 2) {
+		ret = ov2640_set_resolution(shell, 800, 600, "");
+	} else {
+		ret = ov2640_set_resolution(shell, 800, 600, argv[1]);
+	}
+
+	print_camera_status(shell);
+
+	if (ret) {
+		shell_error(shell, "ov2640 - set resolution failed, ret: %d", ret);
+	}
+
+	shell_print(shell, "Finished.");
+
+	return ret;
+}
+
+static int cmd_ov2640_set_res_1024_768(const struct shell *shell, size_t argc,
+			      char **argv)
+{
+	int ret = 0;
+
+	if (argc < 2) {
+		ret = ov2640_set_resolution(shell, 1024, 768, "");
+	} else {
+		ret = ov2640_set_resolution(shell, 1024, 768, argv[1]);
+	}
+
+	print_camera_status(shell);
+
+	if (ret) {
+		shell_error(shell, "ov2640 - set resolution failed, ret: %d", ret);
+	}
+
+	shell_print(shell, "Finished.");
+
+	return ret;
+}
+
+static int cmd_ov2640_set_res_1280_1024(const struct shell *shell, size_t argc,
+			      char **argv)
+{
+	int ret = 0;
+
+	if (argc < 2) {
+		ret = ov2640_set_resolution(shell, 1280, 1024, "");
+	} else {
+		ret = ov2640_set_resolution(shell, 1280, 1024, argv[1]);
+	}
+
+	print_camera_status(shell);
+
+	if (ret) {
+		shell_error(shell, "ov2640 - set resolution failed, ret: %d", ret);
+	}
+
+	shell_print(shell, "Finished.");
+
+	return ret;
 }
 
 static int cmd_ov2640_send_image(const struct shell *shell, size_t argc,
@@ -516,7 +597,16 @@ static int cmd_ov2640_capture(const struct shell *shell, size_t argc,
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
+	sub_ov2640_control_resolution,
+	SHELL_CMD_ARG(mode_640_480, NULL, "\t4:3 640x480px, default clock divider: 1", cmd_ov2640_set_res_640_480, 1, 1),
+	SHELL_CMD_ARG(mode_800_600, NULL, "\t4:3 800x600px, default clock divider: 2", cmd_ov2640_set_res_800_600, 1, 1),
+	SHELL_CMD_ARG(mode_1024_768, NULL, "\t4:3 1024x768px, default clock divider: 3", cmd_ov2640_set_res_1024_768, 1, 1),
+	SHELL_CMD_ARG(mode_1280_1024, NULL, "\t4:3 1280x1024px, default clock divider: 5", cmd_ov2640_set_res_1280_1024, 1, 1),
+	SHELL_SUBCMD_SET_END);
+
+SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_ov2640_control,
+	SHELL_CMD(resolution, &sub_ov2640_control_resolution, "\tSet resolution to one of available modes", NULL),
 	SHELL_CMD_ARG(brightness, NULL, "\t(-2 to +2) Set brightness level", cmd_ov2640_set_brightness, 2, 1),
 	SHELL_CMD_ARG(saturation, NULL, "\t(-2 to +2) Set saturation level", cmd_ov2640_set_saturation, 2, 1),
 	SHELL_CMD_ARG(output_format, NULL, "\t[JPEG|RGB565] Set output format", cmd_ov2640_set_output_format, 2, 1),
@@ -528,7 +618,6 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 		      2, 1),
 	SHELL_CMD_ARG(hflip, NULL, "\t[1|0] Enable/disable horizontal flip", cmd_ov2640_set_horizontal_mirror, 2, 1),
 	SHELL_CMD_ARG(vflip, NULL, "\t[1|0] Enable/disable vertical flip", cmd_ov2640_set_vertical_flip, 2, 1),
-	SHELL_CMD_ARG(resolution, NULL, "\t[width height] Set resolution", cmd_ov2640_set_resolution, 3, 1),
 	SHELL_CMD_ARG(clock_div, NULL, "\t(1 to 64) Set camera clock divider", cmd_ov2640_set_clock_div, 2, 1),
 	SHELL_SUBCMD_SET_END);
 
