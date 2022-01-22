@@ -63,22 +63,27 @@ static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 	} 
 
 	if (escape) {
+		suspend_gpu = true;
+		suspend_cam = true;
+		suspend_hdmi = true;
 		dma_stop(fastvdma_dev_cam_1, 0);
 		dma_stop(fastvdma_dev_cam_2, 0);
 		dma_stop(fastvdma_dev_gpu_in_1, 0);
 		dma_stop(fastvdma_dev_gpu_in_2, 0);
 		dma_stop(fastvdma_dev_gpu_out, 0);
-		suspend_gpu = true;
-		suspend_cam = true;
-		suspend_hdmi = true;
 		k_msleep(10);
 		draw_color(fmt_1.width , fmt_1.height, RGB_BLACK);
 		k_msleep(10);
 		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 		hdmi_out0_core_initiator_enable_write(1);
 		shell_print(sh, "Exiting...");
-		// k_sem_reset(&my_sem);
-		// k_sem_give(&my_sem);
+		k_sem_reset(&my_sem);
+		k_sem_give(&my_sem);
+
+		for (int i = 0; i < 3; i++) {
+			block_buff[i] = false;
+		}
+
 		set_bypass(sh, NULL);
 		return;
 	}

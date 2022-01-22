@@ -202,7 +202,7 @@ void hdmi(void)
 			break;
 		default:
 			break;
-		}		
+		}
 		if (suspend_hdmi) {
 			k_thread_suspend(hdmi_id);
 		}
@@ -247,9 +247,8 @@ void cam(void)
 			callback_cam_block = false;
 		}
 		if (suspend_cam) {
+			callback_cam_block = false;
 			k_thread_suspend(cam_id);
-			k_sem_reset(&my_sem);
-			k_sem_give(&my_sem);
 		}
 		k_msleep(10);
 	}
@@ -261,7 +260,7 @@ void gpu(void)
 	int counter2 = 1;
 	while (true) {
 		if (callback_gpu_block == true) {
-			if (k_sem_take(&my_sem, K_MSEC(50)) != 0) {
+			if (k_sem_take(&my_sem, K_FOREVER) != 0) {
 				printk("Input data not available - gpu!\n");
 			} else {
 				hdmi_buffer_index = counter;
@@ -282,9 +281,8 @@ void gpu(void)
 			}
 		}
 		if (suspend_gpu) {
+			callback_gpu_block = false;
 			k_thread_suspend(gpu_id);
-			// k_sem_reset(&my_sem);
-			// k_sem_give(&my_sem);
 		}
 		k_msleep(10);
 	}
