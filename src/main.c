@@ -52,8 +52,8 @@ uint32_t img_buff_8[1280 * 1024];
 uint32_t img_buff_9[1280 * 1024];
 uint32_t img_buff_10[1280 * 1024];
 
-uint32_t* hdmi_buffers1[3] = {img_buff_1, img_buff_2, img_buff_3};
-uint32_t* hdmi_buffers3[3] = {img_buff_7, img_buff_8, img_buff_9};
+uint32_t* hdmi_buffers[3] = {img_buff_1, img_buff_2, img_buff_3};
+uint32_t* hdmi_buffers_overlay[3] = {img_buff_7, img_buff_8, img_buff_9};
 
 uint32_t image_with_text[1280 * 1024];
 uint32_t img_length_1 = 1280 * 1024;
@@ -80,6 +80,10 @@ enum mode mode = cams;
 const k_tid_t hdmi_id;
 const k_tid_t cam_id;
 const k_tid_t gpu_id;
+
+bool suspend_hdmi = false;
+bool suspend_cam = false;
+bool suspend_gpu = false;
 
 struct k_sem my_sem;
 

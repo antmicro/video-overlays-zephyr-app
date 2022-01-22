@@ -7,7 +7,7 @@
 int hdmi_buffer_index = 0;
 int block_buff[3] = { 0 };
 int blocked_buff_gpu = 0;
-int blocked_buff_cam1 = 0;
+int blocked_buff_cam = 0;
 bool callback_cam_block = false;
 bool callback_gpu_block = false;
 
@@ -34,7 +34,7 @@ void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
 	}
 }
 
-void cam1_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
+void cam_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
 	callback_cam_block = true;
@@ -62,12 +62,6 @@ void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
 		cam_buffer_index = 1;
 		break;
 	}
-}
-
-void cam2_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
-			      uint32_t id, int error_code)
-{
-	// todo
 }
 
 void gpu_in_dma_user_callback(const struct device *dma_dev, void *arg,
@@ -200,14 +194,17 @@ void hdmi(void)
 		switch (mode) {
 		case cams:
 			hdmi_out0_core_initiator_base_write(
-				(uint32_t)hdmi_buffers1[cam_buffer_index]);
+				(uint32_t)hdmi_buffers[cam_buffer_index]);
 			break;
 		case overlay:
 			hdmi_out0_core_initiator_base_write(
-				(uint32_t)hdmi_buffers3[hdmi_buffer_index]);
+				(uint32_t)hdmi_buffers_overlay[hdmi_buffer_index]);
 			break;
 		default:
 			break;
+		}		
+		if (suspend_hdmi) {
+			k_thread_suspend(hdmi_id);
 		}
 		k_msleep(10);
 	}
@@ -224,29 +221,35 @@ void cam(void)
 				if (!block_buff[0]) {
 					dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 					block_buff[0] = true;
-					block_buff[blocked_buff_cam1] = false;
-					gpu_buffer_index = blocked_buff_cam1;
+					block_buff[blocked_buff_cam] = false;
+					gpu_buffer_index = blocked_buff_cam;
 					k_sem_give(&my_sem);
-					blocked_buff_cam1 = 0;
+					blocked_buff_cam = 0;
 				} else if (!block_buff[1]) {
 					dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
 					block_buff[1] = true;
-					block_buff[blocked_buff_cam1] = false;
-					gpu_buffer_index = blocked_buff_cam1;
+					block_buff[blocked_buff_cam] = false;
+					gpu_buffer_index = blocked_buff_cam;
 					k_sem_give(&my_sem);
-					blocked_buff_cam1 = 1;
+					blocked_buff_cam = 1;
 				} else if (!block_buff[2]) {
 					dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
 					block_buff[2] = true;
-					block_buff[blocked_buff_cam1] = false;
-					gpu_buffer_index = blocked_buff_cam1;
+					block_buff[blocked_buff_cam] = false;
+					gpu_buffer_index = blocked_buff_cam;
 					k_sem_give(&my_sem);
-					blocked_buff_cam1 = 2;
+					blocked_buff_cam = 2;
 				}
 				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 			}
 
 			callback_cam_block = false;
+		}
+		if (suspend_cam) {
+			k_thread_suspend(cam_id);
+			k_sem_reset(&my_sem);
+			k_sem_give(&my_sem);
 		}
 		k_msleep(10);
 	}
@@ -270,13 +273,18 @@ void gpu(void)
 				if (counter == 1) counter2 = 2;
 				if (counter == 2) counter2 = 0;
 				blend_images((uint32_t)&image_with_text,
-						(uint32_t)hdmi_buffers1[gpu_buffer_index], (uint32_t)hdmi_buffers3[counter2]);
+						(uint32_t)hdmi_buffers[gpu_buffer_index], (uint32_t)hdmi_buffers_overlay[counter2]);
 			}
 			callback_gpu_block = false;
 			counter++;
 			if (counter == 3) {
 				counter = 0;
 			}
+		}
+		if (suspend_gpu) {
+			k_thread_suspend(gpu_id);
+			// k_sem_reset(&my_sem);
+			// k_sem_give(&my_sem);
 		}
 		k_msleep(10);
 	}

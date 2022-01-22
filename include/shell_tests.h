@@ -16,8 +16,8 @@ extern uint32_t img_buff_7[1280 * 1024];
 extern uint32_t img_buff_8[1280 * 1024];
 extern uint32_t img_buff_9[1280 * 1024];
 extern uint32_t img_buff_10[1280 * 1024];
-extern uint32_t* hdmi_buffers1[3];
-extern uint32_t* hdmi_buffers3[3];
+extern uint32_t* hdmi_buffers[3];
+extern uint32_t* hdmi_buffers_overlay[3];
 extern uint32_t img_length_1;
 extern uint32_t img_length_2;
 extern struct video_format fmt_1;
@@ -39,11 +39,14 @@ extern const k_tid_t hdmi_id;
 extern const k_tid_t gpu_id;
 extern const k_tid_t cam_id;
 
+extern bool suspend_hdmi;
+extern bool suspend_cam;
+extern bool suspend_gpu;
+
 extern enum mode{cams, overlay} mode;
 
 extern enum mode mode;
-
-// #define BUFFER_ADDR 0x200000
+extern struct k_sem my_sem;
 
 #define IMG2_HEIGHT 800U
 #define IMG2_WIDTH 600U

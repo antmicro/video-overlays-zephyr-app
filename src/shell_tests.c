@@ -32,7 +32,7 @@ static int set_bypass(const struct shell *sh, shell_bypass_cb_t bypass)
 	return 0;
 }
 
-static void bypass_cb(const struct shell *sh, uint8_t *recv, size_t len)
+static void bypass_cb_cams(const struct shell *sh, uint8_t *recv, size_t len)
 {
 	bool escape = false;
 
@@ -41,12 +41,44 @@ static void bypass_cb(const struct shell *sh, uint8_t *recv, size_t len)
 	} 
 
 	if (escape) {
-		k_thread_suspend(hdmi_id);
-		draw_color(800, 600, RGB_BLACK);
+		suspend_hdmi = true;
+		dma_stop(fastvdma_dev_cam_1, 0);
+		dma_stop(fastvdma_dev_cam_2, 0);
+		draw_color(fmt_1.width , fmt_1.height, RGB_BLACK);
 		k_msleep(10);
 		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
 		hdmi_out0_core_initiator_enable_write(1);
 		shell_print(sh, "Exiting...");
+		set_bypass(sh, NULL);
+		return;
+	}
+}
+
+static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
+{
+	bool escape = false;
+
+	if (recv[len - 1] == CHAR_CAN ) {
+		escape = true;
+	} 
+
+	if (escape) {
+		dma_stop(fastvdma_dev_cam_1, 0);
+		dma_stop(fastvdma_dev_cam_2, 0);
+		dma_stop(fastvdma_dev_gpu_in_1, 0);
+		dma_stop(fastvdma_dev_gpu_in_2, 0);
+		dma_stop(fastvdma_dev_gpu_out, 0);
+		suspend_gpu = true;
+		suspend_cam = true;
+		suspend_hdmi = true;
+		k_msleep(10);
+		draw_color(fmt_1.width , fmt_1.height, RGB_BLACK);
+		k_msleep(10);
+		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_10);
+		hdmi_out0_core_initiator_enable_write(1);
+		shell_print(sh, "Exiting...");
+		// k_sem_reset(&my_sem);
+		// k_sem_give(&my_sem);
 		set_bypass(sh, NULL);
 		return;
 	}
@@ -130,69 +162,86 @@ static int display_buffer2(const struct shell *shell, size_t argc, char **argv)
 
 static int display_video_cam1(const struct shell *shell, size_t argc, char **argv)
 {
-	dma_stop(fastvdma_dev_cam_2, 0);
+	suspend_hdmi = false;
+
 	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 	dma_start(fastvdma_dev_cam_1, 0);
 	mode = cams;
 	k_thread_resume(hdmi_id);
-	set_bypass(shell, bypass_cb);
+	set_bypass(shell, bypass_cb_cams);
 	return 0;
 }
 
 static int display_video_cam2(const struct shell *shell, size_t argc, char **argv)
 {
-	dma_stop(fastvdma_dev_cam_1, 0);
+	suspend_hdmi = false;
+
 	dma_cfg_cam2.dma_callback = cam2_dma_user_callback;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 	dma_start(fastvdma_dev_cam_2, 0);
 	mode = cams;
 	k_thread_resume(hdmi_id);
-	set_bypass(shell, bypass_cb);
+	set_bypass(shell, bypass_cb_cams);
 	return 0;
 }
 
 static int display_video_with_overlay_cam1(const struct shell *shell, size_t argc, char **argv)
 {
-	dma_stop(fastvdma_dev_cam_2, 0);
+	suspend_gpu = false;
+	suspend_cam = false;
+	suspend_hdmi = false;
 
-	dma_cfg_cam1.dma_callback = cam1_with_gpu_dma_user_callback;
+	dma_cfg_cam1.dma_callback = cam_with_gpu_dma_user_callback;
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 
-	blocked_buff_cam1 = 0;
+	blocked_buff_cam = 0;
 	blocked_buff_gpu = 1;
-	block_buff[blocked_buff_cam1] = true;
+	block_buff[blocked_buff_cam] = true;
 	block_buff[blocked_buff_gpu] = true;
 	
 	dma_start(fastvdma_dev_cam_1, 0);
+	
+	mode = overlay;
+	k_thread_resume(hdmi_id);
+	k_thread_resume(cam_id);
+	k_thread_resume(gpu_id);
 	
 	char *text = "2021-11-25 10:00";
 	generate_image_with_text(image_with_text, text, fmt_1.width, fmt_1.height);
 	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
 
-	mode = overlay;
-	k_thread_resume(hdmi_id);
-	k_thread_resume(cam_id);
-	k_thread_resume(gpu_id);
-	set_bypass(shell, bypass_cb);
+	set_bypass(shell, bypass_cb_overlay);
 	return 0;
 }
 
 static int display_video_with_overlay_cam2(const struct shell *shell, size_t argc, char **argv)
 {
-	dma_cfg_cam2.dma_callback = cam2_with_gpu_dma_user_callback;
+	suspend_gpu = false;
+	suspend_cam = false;
+	suspend_hdmi = false;
+
+	dma_cfg_cam2.dma_callback = cam_with_gpu_dma_user_callback;
+	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
-	dma_stop(fastvdma_dev_cam_1, 0);
+
+	blocked_buff_cam = 0;
+	blocked_buff_gpu = 1;
+	block_buff[blocked_buff_cam] = true;
+	block_buff[blocked_buff_gpu] = true;
+	
 	dma_start(fastvdma_dev_cam_2, 0);
 	
-	char *text = "2021-11-25 10:00";
-	generate_image_with_text(image_with_text, text, fmt_1.width, fmt_1.height);
-	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_2);
-
 	mode = overlay;
 	k_thread_resume(hdmi_id);
-	set_bypass(shell, bypass_cb);
+	k_thread_resume(cam_id);
+	k_thread_resume(gpu_id);
+	char *text = "2021-11-25 10:00";
+	generate_image_with_text(image_with_text, text, fmt_1.width, fmt_1.height);
+	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
+
+	set_bypass(shell, bypass_cb_overlay);
 	return 0;
 }
 
