@@ -30,25 +30,25 @@ void generate_image_with_text(uint32_t image_with_text[], int width, int height)
 			if(width < 480) {
 				if ((font[character][i] >> 7) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 0] = color;
-				} 
+				}
 				if ((font[character][i] >> 6) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 1] = color;
-				} 
+				}
 				if ((font[character][i] >> 5) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 2] = color;
-				} 
+				}
 				if ((font[character][i] >> 4) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 3] = color;
-				} 
+				}
 				if ((font[character][i] >> 3) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 4] = color;
-				} 
+				}
 				if ((font[character][i] >> 2) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 5] = color;
-				} 
+				}
 				if ((font[character][i] >> 1) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 6] = color;
-				} 
+				}
 				if ((font[character][i] >> 0) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 7] = color;
 				}

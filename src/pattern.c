@@ -1,6 +1,6 @@
 #include "pattern.h"
 
-static const unsigned int color_bar[8] = { 
+static const unsigned int color_bar[8] = {
 	RGB_WHITE,
 	RGB_YELLOW,
 	RGB_CYAN,

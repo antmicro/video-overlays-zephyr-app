@@ -13,16 +13,16 @@
 void print_camera_status(const struct shell *shell)
 {
 	shell_print(shell, " - (OV2640_1) Current format: %c%c%c%c %ux%u\n", (char)fmt_1.pixelformat,
-	       (char)(fmt_1.pixelformat >> 8),
-	       (char)(fmt_1.pixelformat >> 16),
-	       (char)(fmt_1.pixelformat >> 24),
-	       fmt_1.width, fmt_1.height);
+		(char)(fmt_1.pixelformat >> 8),
+		(char)(fmt_1.pixelformat >> 16),
+		(char)(fmt_1.pixelformat >> 24),
+		fmt_1.width, fmt_1.height);
 
 	shell_print(shell, " - (OV2640_2) Current format: %c%c%c%c %ux%u\n", (char)fmt_2.pixelformat,
-	       (char)(fmt_2.pixelformat >> 8),
-	       (char)(fmt_2.pixelformat >> 16),
-	       (char)(fmt_2.pixelformat >> 24),
-	       fmt_2.width, fmt_2.height);
+		(char)(fmt_2.pixelformat >> 8),
+		(char)(fmt_2.pixelformat >> 16),
+		(char)(fmt_2.pixelformat >> 24),
+		fmt_2.width, fmt_2.height);
 }
 
 int ov2640_set_resolution(const struct shell *shell, int w, int h, char* camera)
@@ -120,7 +120,7 @@ static int cmd_ov2640_set_brightness(const struct shell *shell, size_t argc,
 		err |= video_set_ctrl(ov2640_dev_1,
 			VIDEO_CID_CAMERA_BRIGHTNESS, &arg);
 		err |= video_set_ctrl(ov2640_dev_2,
-			VIDEO_CID_CAMERA_BRIGHTNESS, &arg);	
+			VIDEO_CID_CAMERA_BRIGHTNESS, &arg);
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set brightness to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1,
@@ -153,7 +153,7 @@ static int cmd_ov2640_set_saturation(const struct shell *shell, size_t argc,
 		err |= video_set_ctrl(ov2640_dev_1,
 			VIDEO_CID_CAMERA_SATURATION, &arg);
 		err |= video_set_ctrl(ov2640_dev_2,
-			VIDEO_CID_CAMERA_SATURATION, &arg);	
+			VIDEO_CID_CAMERA_SATURATION, &arg);
 	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set saturation to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1,
@@ -222,11 +222,11 @@ static int cmd_ov2640_set_quality(const struct shell *shell, size_t argc, char *
 		shell_print(shell, "ov2640 (both) - set quality to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_QUALITY, &arg);
 		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_QUALITY, &arg);
-	} 
+	}
 	else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set quality to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_QUALITY, &arg);
-	} 
+	}
 	else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set quality to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_QUALITY, &arg);
@@ -622,7 +622,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_SUBCMD_SET_END);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(
-	sub_ov2640, 
+	sub_ov2640,
 	SHELL_CMD(control, &sub_ov2640_control, "\tov2640 control commands", NULL),
 	SHELL_CMD_ARG(send_image, NULL, "\tSend image via UPD at 192.0.2.2. "
         "Provide either left or right to choose which buffer should be sent. "

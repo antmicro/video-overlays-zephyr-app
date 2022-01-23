@@ -54,7 +54,7 @@ static void bypass_cb_cams(const struct shell *sh, uint8_t *recv, size_t len)
 
 	if (recv[len - 1] == CHAR_CAN ) {
 		escape = true;
-	} 
+	}
 
 	if (escape) {
 		suspend_hdmi = true;
@@ -80,7 +80,7 @@ static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 
 	if (recv[len - 1] == CHAR_CAN ) {
 		escape = true;
-	} 
+	}
 
 	if (escape) {
 		suspend_gpu = true;
@@ -240,14 +240,14 @@ void display_video_with_overlay_cam1()
 	block_buff[blocked_buff_cam] = true;
 	block_buff[blocked_buff_gpu] = true;
 	start_time_cam = timing_counter_get();
-	
+
 	dma_start(fastvdma_dev_cam_1, 0);
-	
+
 	mode = overlay;
 	k_thread_resume(hdmi_id);
 	k_thread_resume(cam_id);
 	k_thread_resume(gpu_id);
-	
+
 	generate_image_with_text(image_with_text, fmt_1.width, fmt_1.height);
 	start_time_gpu = timing_counter_get();
 	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
@@ -268,9 +268,9 @@ void display_video_with_overlay_cam2()
 	block_buff[blocked_buff_cam] = true;
 	block_buff[blocked_buff_gpu] = true;
 	start_time_cam = timing_counter_get();
-	
+
 	dma_start(fastvdma_dev_cam_2, 0);
-	
+
 	mode = overlay;
 	k_thread_resume(hdmi_id);
 	k_thread_resume(cam_id);
