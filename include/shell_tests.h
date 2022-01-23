@@ -61,4 +61,4 @@ extern struct k_sem my_sem;
 #define CHAR_DC1 0x11
 
 void flush_l2_cache(void);
-void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr);
+void blend_images(uint32_t read_addr, uint32_t write_addr);

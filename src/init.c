@@ -94,8 +94,6 @@ void gpu_out_dma_user_callback(const struct device *dma_dev, void *arg,
 	}
 
 	callback_gpu_block = true;
-
-	start_time_gpu = timing_counter_get();
 }
 
 
@@ -293,8 +291,7 @@ void gpu(void)
 				if (counter == 0) counter2 = 1;
 				if (counter == 1) counter2 = 2;
 				if (counter == 2) counter2 = 0;
-				blend_images((uint32_t)&image_with_text,
-						(uint32_t)hdmi_buffers[gpu_buffer_index], (uint32_t)hdmi_buffers_overlay[counter2]);
+				blend_images((uint32_t)hdmi_buffers[gpu_buffer_index], (uint32_t)hdmi_buffers_overlay[counter2]);
 			}
 			callback_gpu_block = false;
 			counter++;

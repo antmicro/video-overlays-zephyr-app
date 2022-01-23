@@ -117,31 +117,20 @@ static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 	}
 }
 
-void blend_images(uint32_t read_addr1, uint32_t read_addr2, uint32_t write_addr)
+void blend_images(uint32_t read_addr, uint32_t write_addr)
 {
 	/* Configure DMAs */
-	dma_block_cfg_gpu_in.source_address = read_addr1;
-	dma_block_cfg_gpu_in.dest_address = 0;
-	dma_block_cfg_gpu_in.source_gather_count = fmt_1.height;
-	dma_block_cfg_gpu_in.dest_scatter_count = fmt_1.height;
-	dma_block_cfg_gpu_in.block_size = fmt_1.width * fmt_1.height;
-	dma_config(fastvdma_dev_gpu_in_1, 0, &dma_cfg_gpu_in);
-	dma_block_cfg_gpu_in.source_address = read_addr2;
+	dma_block_cfg_gpu_in.source_address = read_addr;
 	dma_block_cfg_gpu_in.dest_address = 0;
 	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
 	dma_block_cfg_gpu_out.source_address = 0;
 	dma_block_cfg_gpu_out.dest_address = write_addr;
-	dma_block_cfg_gpu_out.source_gather_count = fmt_1.height;
-	dma_block_cfg_gpu_out.dest_scatter_count = fmt_1.height;
-	dma_block_cfg_gpu_out.block_size = fmt_1.width * fmt_1.height;
 	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg_gpu_out);
-
-	/* Start GPU */
-	GPU->CR = GPU_CR_ALPHA_BLENDER;
 
 	/* Start GPU DMAs */
 	dma_start(fastvdma_dev_gpu_in_1, 0);
 	dma_start(fastvdma_dev_gpu_in_2, 0);
+	start_time_gpu = timing_counter_get();
 	dma_start(fastvdma_dev_gpu_out, 0);
 }
 
@@ -235,6 +224,21 @@ void display_video_with_overlay_cam1()
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 
+	dma_block_cfg_gpu_in.source_address = (uint32_t)&image_with_text;
+	dma_block_cfg_gpu_in.dest_address = 0;
+	dma_block_cfg_gpu_in.source_gather_count = fmt_1.height;
+	dma_block_cfg_gpu_in.dest_scatter_count = fmt_1.height;
+	dma_block_cfg_gpu_in.block_size = fmt_1.width * fmt_1.height;
+	dma_block_cfg_gpu_out.source_gather_count = fmt_1.height;
+	dma_block_cfg_gpu_out.dest_scatter_count = fmt_1.height;
+	dma_block_cfg_gpu_out.block_size = fmt_1.width * fmt_1.height;
+	dma_config(fastvdma_dev_gpu_in_1, 0, &dma_cfg_gpu_in);
+	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
+	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg_gpu_out);
+
+	/* Start GPU */
+	GPU->CR = GPU_CR_ALPHA_BLENDER;
+
 	blocked_buff_cam = 0;
 	blocked_buff_gpu = 1;
 	block_buff[blocked_buff_cam] = true;
@@ -250,7 +254,7 @@ void display_video_with_overlay_cam1()
 
 	generate_image_with_text(image_with_text, fmt_1.width, fmt_1.height);
 	start_time_gpu = timing_counter_get();
-	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
+	blend_images((uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
 }
 
 void display_video_with_overlay_cam2()
@@ -262,6 +266,21 @@ void display_video_with_overlay_cam2()
 	dma_cfg_cam2.dma_callback = cam_with_gpu_dma_user_callback;
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+
+	dma_block_cfg_gpu_in.source_address = (uint32_t)&image_with_text;
+	dma_block_cfg_gpu_in.dest_address = 0;
+	dma_block_cfg_gpu_in.source_gather_count = fmt_1.height;
+	dma_block_cfg_gpu_in.dest_scatter_count = fmt_1.height;
+	dma_block_cfg_gpu_in.block_size = fmt_1.width * fmt_1.height;
+	dma_block_cfg_gpu_out.source_gather_count = fmt_1.height;
+	dma_block_cfg_gpu_out.dest_scatter_count = fmt_1.height;
+	dma_block_cfg_gpu_out.block_size = fmt_1.width * fmt_1.height;
+	dma_config(fastvdma_dev_gpu_in_1, 0, &dma_cfg_gpu_in);
+	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
+	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg_gpu_out);
+
+	/* Start GPU */
+	GPU->CR = GPU_CR_ALPHA_BLENDER;
 
 	blocked_buff_cam = 0;
 	blocked_buff_gpu = 1;
@@ -277,7 +296,7 @@ void display_video_with_overlay_cam2()
 	k_thread_resume(gpu_id);
 	generate_image_with_text(image_with_text, fmt_2.width, fmt_2.height);
 	start_time_gpu = timing_counter_get();
-	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
+	blend_images((uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
 }
 
 static int cmd_display_image_with_overlay(const struct shell *shell, size_t argc, char **argv)
@@ -290,7 +309,7 @@ static int cmd_display_image_with_overlay(const struct shell *shell, size_t argc
 	k_msleep(300);
 	dma_stop(fastvdma_dev_cam_1, 0);
 	generate_image_with_text((uint32_t*)&image_with_text, fmt_1.width, fmt_1.height);
-	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
+	blend_images((uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
 
 	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 
