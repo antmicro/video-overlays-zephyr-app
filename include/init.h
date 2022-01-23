@@ -37,6 +37,13 @@ extern bool suspend_hdmi;
 extern bool suspend_cam;
 extern bool suspend_gpu;
 
+extern timing_t start_time_cam, end_time_cam;
+extern timing_t start_time_gpu, end_time_gpu;
+extern uint64_t measures_cam[100];
+extern int n_measure_cam;
+extern uint64_t measures_gpu[100];
+extern int n_measure_gpu;
+
 extern enum mode mode;
 extern struct k_sem my_sem;
 

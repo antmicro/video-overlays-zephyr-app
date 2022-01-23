@@ -6,11 +6,27 @@
 #include <drivers/video.h>
 #include <drivers/dma.h>
 #include <string.h>
+#include <timing/timing.h>
+#include <stdio.h>
 
 #include "shell_tests.h"
 #include "pattern.h"
 #include "net.h"
 #include "hdmi.h"
+
+void clean_measures(uint64_t measures[])
+{
+	for(int i = 0; i < 100; i++) {
+		measures[i] = 0;
+	}
+}
+
+void display_measures(uint64_t measures[])
+{
+	for(int i = 0; i < 100; i++) {
+		printf("measure %d : %lld \n", i, measures[i]);
+	}
+}
 
 static int set_bypass(const struct shell *sh, shell_bypass_cb_t bypass)
 {
@@ -23,7 +39,7 @@ static int set_bypass(const struct shell *sh, shell_bypass_cb_t bypass)
 
 	in_use = !in_use;
 	if (in_use) {
-		shell_print(sh, "Displaying...\npress ctrl-x escape");
+		shell_print(sh, "press ctrl-x to quit test");
 		in_use = true;
 	}
 
@@ -48,6 +64,10 @@ static void bypass_cb_cams(const struct shell *sh, uint8_t *recv, size_t len)
 		k_msleep(10);
 		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 		hdmi_out0_core_initiator_enable_write(1);
+		printf("Measures cam: \n");
+		display_measures(measures_cam);
+		clean_measures(measures_cam);
+		n_measure_cam = 0;
 		shell_print(sh, "Exiting...");
 		set_bypass(sh, NULL);
 		return;
@@ -76,6 +96,14 @@ static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 		k_msleep(10);
 		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
 		hdmi_out0_core_initiator_enable_write(1);
+		printf("Measures cam: \n");
+		display_measures(measures_cam);
+		clean_measures(measures_cam);
+		n_measure_cam = 0;
+		printf("Measures gpu: \n");
+		display_measures(measures_gpu);
+		clean_measures(measures_gpu);
+		n_measure_gpu = 0;
 		shell_print(sh, "Exiting...");
 		k_sem_reset(&my_sem);
 		k_sem_give(&my_sem);
@@ -179,6 +207,7 @@ void display_video_cam1()
 
 	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
+	start_time_cam = timing_counter_get();
 	dma_start(fastvdma_dev_cam_1, 0);
 	mode = cams;
 	k_thread_resume(hdmi_id);
@@ -190,6 +219,7 @@ void display_video_cam2()
 
 	dma_cfg_cam2.dma_callback = cam2_dma_user_callback;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
+	start_time_cam = timing_counter_get();
 	dma_start(fastvdma_dev_cam_2, 0);
 	mode = cams;
 	k_thread_resume(hdmi_id);
@@ -209,6 +239,7 @@ void display_video_with_overlay_cam1()
 	blocked_buff_gpu = 1;
 	block_buff[blocked_buff_cam] = true;
 	block_buff[blocked_buff_gpu] = true;
+	start_time_cam = timing_counter_get();
 	
 	dma_start(fastvdma_dev_cam_1, 0);
 	
@@ -218,6 +249,7 @@ void display_video_with_overlay_cam1()
 	k_thread_resume(gpu_id);
 	
 	generate_image_with_text(image_with_text, fmt_1.width, fmt_1.height);
+	start_time_gpu = timing_counter_get();
 	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
 }
 
@@ -235,6 +267,7 @@ void display_video_with_overlay_cam2()
 	blocked_buff_gpu = 1;
 	block_buff[blocked_buff_cam] = true;
 	block_buff[blocked_buff_gpu] = true;
+	start_time_cam = timing_counter_get();
 	
 	dma_start(fastvdma_dev_cam_2, 0);
 	
@@ -243,6 +276,7 @@ void display_video_with_overlay_cam2()
 	k_thread_resume(cam_id);
 	k_thread_resume(gpu_id);
 	generate_image_with_text(image_with_text, fmt_2.width, fmt_2.height);
+	start_time_gpu = timing_counter_get();
 	blend_images((uint32_t)&image_with_text, (uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
 }
 

@@ -46,19 +46,16 @@ extern bool suspend_gpu;
 extern enum mode{cams, overlay} mode;
 extern enum mode mode;
 
+extern timing_t start_time_cam, end_time_cam;
+extern timing_t start_time_gpu, end_time_gpu;
+extern uint64_t measures_cam[100];
+extern int n_measure_cam;
+extern uint64_t measures_gpu[100];
+extern int n_measure_gpu;
+
 extern char* overlay_text;
 
 extern struct k_sem my_sem;
-
-#define IMG2_HEIGHT 800U
-#define IMG2_WIDTH 600U
-#define IMG2_LINE IMG1_WIDTH * 4
-#define IMG2_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
-
-#define IMG1_HEIGHT 800U
-#define IMG1_WIDTH 600U
-#define IMG1_LINE IMG1_WIDTH * 4
-#define IMG1_SIZE IMG1_HEIGHT *IMG1_WIDTH * 4
 
 #define CHAR_CAN 0x18
 #define CHAR_DC1 0x11
