@@ -332,6 +332,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 						"Resolutions:\n"
 						// "1920x1080_60Hz\t"
 						// "1280x720_60Hz\t"
+						"1280x1024_60Hz\t"
 						"1024x768_60Hz\t"
 						"800x600_60Hz\t"
 						"640x480_75Hz\n", NULL),
