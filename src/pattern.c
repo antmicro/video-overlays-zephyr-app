@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021-2022 Antmicro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "pattern.h"
 
 static const unsigned int color_bar[8] = {

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021-2022 Antmicro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <zephyr.h>
 extern uint32_t img_buff_7[1280 * 1024];
 #define RGB_WHITE  0x00ffffff

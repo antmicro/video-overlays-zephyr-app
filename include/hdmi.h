@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021-2022 Antmicro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #define INITIATOR_ENABLE_REG 		0x3818L
 #define INITIATOR_HSCAN_HI 			0x3834L
 #define INITIATOR_HSCAN_LOW 		0x3838L

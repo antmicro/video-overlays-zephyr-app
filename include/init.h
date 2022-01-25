@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021-2022 Antmicro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 extern const struct device *fastvdma_dev_cam_1;
 extern const struct device *fastvdma_dev_cam_2;
 extern const struct device *fastvdma_dev_gpu_in_1;

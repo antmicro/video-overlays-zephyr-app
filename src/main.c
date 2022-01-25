@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Antmicro
+ * Copyright (c) 2021-2022 Antmicro
  *
  * SPDX-License-Identifier: Apache-2.0
  */

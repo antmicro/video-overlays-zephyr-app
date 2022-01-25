@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021-2022 Antmicro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /* GPU */
 typedef struct {
 	uint8_t CR;			/* offset 0x00*/

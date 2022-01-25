@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021-2022 Antmicro
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 &uart0 {
 	reg = <0xf0002800 0x20>;
 	interrupts = <0x0 0>;
