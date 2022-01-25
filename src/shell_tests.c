@@ -117,6 +117,36 @@ static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 	}
 }
 
+
+static int cmd_send_image(const struct shell *shell, size_t argc,
+				char **argv)
+{
+	int err = 0;
+
+	if (argc == 1 || (argc == 2 && !strcmp(argv[1], "both"))) {
+		shell_print(shell, "ov2640 (both) - send image...");
+		send_image((uint32_t*)&img_buff_1, img_length_1);
+		send_image((uint32_t*)&img_buff_2, img_length_2);
+	} else if (!strcmp(argv[1], "left")) {
+		shell_print(shell, "ov2640 (left) - send image...");
+		send_image((uint32_t*)&img_buff_1, img_length_1);
+	} else if (!strcmp(argv[1], "right")) {
+		shell_print(shell, "ov2640 (right) - send image...");
+		send_image((uint32_t*)&img_buff_2, img_length_2);
+	} else {
+		shell_error(shell, "Wrong function parameters.");
+		err = -1;
+	}
+
+	if (err) {
+		shell_error(shell, "ov2640 - send image failed, error: %d", err);
+	} else {
+		shell_print(shell, "Finished.");
+	}
+
+	return err;
+}
+
 void blend_images(uint32_t read_addr, uint32_t write_addr)
 {
 	/* Configure DMAs */
@@ -397,6 +427,11 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 		"\tGenerate an overlay image. Text is fixed to \"2021-10-27 9:31\""
 		"After successful generation it is sent via UDP at 192.0.2.2."
 		"It DOES NOT display generated image.", cmd_generate_and_send_overlay, 1, 0),
+	SHELL_CMD_ARG(send_image, NULL, 
+		"\tSend image via UPD at 192.0.2.2. "
+        "Provide either left or right to choose which buffer should be sent. "
+        "If none provided these will be sent one after another starting with the left one.\n",
+        cmd_send_image, 1, 1),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(test, &sub_test, "\tTest app functionalities.", NULL);

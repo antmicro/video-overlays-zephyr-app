@@ -536,66 +536,6 @@ static int cmd_ov2640_set_res_1280_1024(const struct shell *shell, size_t argc,
 	return ret;
 }
 
-static int cmd_ov2640_send_image(const struct shell *shell, size_t argc,
-				char **argv)
-{
-	int err = 0;
-
-	if (argc == 1 || (argc == 2 && !strcmp(argv[1], "both"))) {
-		shell_print(shell, "ov2640 (both) - send image...");
-		send_image((uint32_t*)&img_buff_1, img_length_1);
-		send_image((uint32_t*)&img_buff_2, img_length_2);
-	} else if (!strcmp(argv[1], "left")) {
-		shell_print(shell, "ov2640 (left) - send image...");
-		send_image((uint32_t*)&img_buff_1, img_length_1);
-	} else if (!strcmp(argv[1], "right")) {
-		shell_print(shell, "ov2640 (right) - send image...");
-		send_image((uint32_t*)&img_buff_2, img_length_2);
-	} else {
-		shell_error(shell, "Wrong function parameters.");
-		err = -1;
-	}
-
-	if (err) {
-		shell_error(shell, "ov2640 - send image failed, error: %d", err);
-	} else {
-		shell_print(shell, "Finished.");
-	}
-
-	return err;
-}
-
-static int cmd_ov2640_capture(const struct shell *shell, size_t argc,
-				char **argv)
-{
-	ARG_UNUSED(argv);
-	int err = 0, ret = 0;
-
-	flush_l2_cache();
-	if (argc == 1 || (argc == 2 && !strcmp(argv[1], "both"))) {
-		shell_print(shell, "ov2640 (both) - capture image...");
-		ret |= dma_start(fastvdma_dev_cam_1, 0);
-		ret |= dma_start(fastvdma_dev_cam_2, 0);
-	} else if (!strcmp(argv[1], "left")) {
-		shell_print(shell, "ov2640 (left) - capture image...");
-		ret |= dma_start(fastvdma_dev_cam_1, 0);
-	} else if (!strcmp(argv[1], "right")) {
-		shell_print(shell, "ov2640 (right) - capture image...");
-		ret |= dma_start(fastvdma_dev_cam_2, 0);
-	} else {
-		shell_error(shell, "Wrong function parameters.");
-		err = -1;
-	}
-
-	if (err | ret) {
-		shell_error(shell, "ov2640 - capture image failed, error: %d, ret: %d", err, ret);
-	} else {
-		shell_print(shell, "Capture initialized.");
-	}
-
-	return err | ret;
-}
-
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_ov2640_control_resolution,
 	SHELL_CMD_ARG(mode_640_480, NULL, "\t4:3 640x480px, default clock divider: 1", cmd_ov2640_set_res_640_480, 1, 1),
@@ -624,13 +564,6 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_ov2640,
 	SHELL_CMD(control, &sub_ov2640_control, "\tov2640 control commands", NULL),
-	SHELL_CMD_ARG(send_image, NULL, "\tSend image via UPD at 192.0.2.2. "
-        "Provide either left or right to choose which buffer should be sent. "
-        "If none provided these will be sent one after another starting with the left one.\n",
-        cmd_ov2640_send_image, 1, 1),
-	SHELL_CMD_ARG(capture, NULL, "\tInitialize camera capture. "
-        "Provide either left or right to choose which camera image should be initialized.\n",
-        cmd_ov2640_capture, 1, 1),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(ov2640, &sub_ov2640, "\tov2640 commands", NULL);
