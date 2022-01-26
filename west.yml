@@ -1,11 +1,15 @@
+
 manifest:
 
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
-
+    - name: zephyrproject-antmicro
+      url-base: https://github.com/antmicro
+  defaults:
+    remote: zephyrproject-antmicro
   projects:
     - name: zephyr
-      remote: zephyrproject-rtos
-      revision: v2.7.1
+      remote: zephyrproject-antmicro
+      revision: video-overlays
       import: true
