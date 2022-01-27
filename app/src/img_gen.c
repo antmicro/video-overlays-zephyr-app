@@ -32,7 +32,7 @@ void generate_image_with_text(uint32_t image_with_text[], int width, int height)
 		}
 
 		/* Write at [v_offset * width][h_offset + char_offset + char_bit] */
-		for (int i = 12; i >= 0; i--) {
+		for(int i = 0; i <= 15; i++) {
 			if (width < 480) {
 				if ((font[character][i] >> 7) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 0] = color;
