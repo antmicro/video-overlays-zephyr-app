@@ -90,15 +90,19 @@ bool suspend_hdmi = false;
 bool suspend_cam = false;
 bool suspend_gpu = false;
 
+//define MEASURE_PERFORMANCE
 
+#ifdef MEASURE_PERFORMANCE
 timing_t start_time_cam, end_time_cam;
 timing_t start_time_gpu, end_time_gpu;
 uint64_t measures_cam[100] = {0};
 int n_measure_cam = 0;
 uint64_t measures_gpu[100] = {0};
 int n_measure_gpu = 0;
+#endif
 
 struct k_sem my_sem;
+
 
 K_THREAD_DEFINE(hdmi_id, STACKSIZE, hdmi, NULL, NULL, NULL, PRIORITY, 0, 0);
 
@@ -179,9 +183,11 @@ void main(void)
 {
 	k_sem_init(&my_sem, 0, 1);
 	suspend_threads();
-
+	
+	#ifdef MEASURE_PERFORMANCE
     timing_init();
 	timing_start();
+	#endif
 
 	ov2640_dev_1 = device_get_binding(OV2640_1);
 	ov2640_dev_2 = device_get_binding(OV2640_2);

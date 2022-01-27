@@ -21,12 +21,14 @@ bool callback_gpu_block = false;
 void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
+	#ifdef MEASURE_PERFORMANCE
 	end_time_cam = timing_counter_get();
 
 	if (n_measure_cam <= 100) {
 		measures_cam[n_measure_cam] = (timing_cycles_to_ns(timing_cycles_get(&start_time_cam, &end_time_cam)) / 1000000);
 		n_measure_cam++;
 	}
+	#endif
 
 	dma_block_cfg_cam.dest_address = (uint32_t)hdmi_buffers[cam_buffer_index];
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
@@ -39,35 +41,43 @@ void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
 		cam_buffer_index = 1;
 	}
 
+	#ifdef MEASURE_PERFORMANCE
 	start_time_cam = timing_counter_get();
+	#endif
 
 }
 
 void cam_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
+	#ifdef MEASURE_PERFORMANCE
 	end_time_cam = timing_counter_get();
 
 	if (n_measure_cam <= 100) {
 		measures_cam[n_measure_cam] = (timing_cycles_to_ns(timing_cycles_get(&start_time_cam, &end_time_cam)) / 1000000);
 		n_measure_cam++;
 	}
+	#endif
 
 	callback_cam_block = true;
 
+	#ifdef MEASURE_PERFORMANCE
 	start_time_cam = timing_counter_get();
+	#endif
 }
 
 
 void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
+	#ifdef MEASURE_PERFORMANCE
 	end_time_cam = timing_counter_get();
 
 	if (n_measure_cam <= 100) {
 		measures_cam[n_measure_cam] = (timing_cycles_to_ns(timing_cycles_get(&start_time_cam, &end_time_cam)) / 1000000);
 		n_measure_cam++;
 	}
+	#endif
 
 	dma_block_cfg_cam.dest_address = (uint32_t)hdmi_buffers[cam_buffer_index];
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
@@ -80,7 +90,10 @@ void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
 		cam_buffer_index = 1;
 	}
 
+	#ifdef MEASURE_PERFORMANCE
 	start_time_cam = timing_counter_get();
+	#endif
+
 }
 
 void gpu_in_dma_user_callback(const struct device *dma_dev, void *arg,
@@ -92,12 +105,14 @@ void gpu_in_dma_user_callback(const struct device *dma_dev, void *arg,
 void gpu_out_dma_user_callback(const struct device *dma_dev, void *arg,
 			      uint32_t id, int error_code)
 {
+	#ifdef MEASURE_PERFORMANCE
 	end_time_gpu = timing_counter_get();
 
 	if (n_measure_gpu <= 100) {
 		measures_gpu[n_measure_gpu] = (timing_cycles_to_ns(timing_cycles_get(&start_time_gpu, &end_time_gpu)) / 1000000);
 		n_measure_gpu++;
 	}
+	#endif
 
 	callback_gpu_block = true;
 }
@@ -269,11 +284,9 @@ void cam(void)
 				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 			}
-
 			callback_cam_block = false;
 		}
 		if (suspend_cam) {
-			callback_cam_block = false;
 			k_thread_suspend(cam_id);
 		}
 		k_msleep(10);
