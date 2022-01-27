@@ -31,14 +31,15 @@ void print_camera_status(const struct shell *shell)
 		fmt_2.width, fmt_2.height);
 }
 
-int ov2640_set_resolution(const struct shell *shell, int w, int h, char* camera)
+int ov2640_set_resolution(const struct shell *shell, int w, int h, char *camera)
 {
 	int ret = 0;
 	int i = 0;
 
-	if(!strcmp(camera, "both") || !strcmp(camera, "")) {
+	if (!strcmp(camera, "both") || !strcmp(camera, "")) {
 		while (caps.format_caps[i].pixelformat) {
 			const struct video_format_cap *fcap = &caps.format_caps[i];
+
 			if (fcap->width_min == w && fcap->height_min == h) {
 				fmt_1.width = w;
 				fmt_1.height = h;
@@ -66,9 +67,10 @@ int ov2640_set_resolution(const struct shell *shell, int w, int h, char* camera)
 			i++;
 		}
 		ret |= video_set_format(ov2640_dev_1, VIDEO_EP_OUT, &fmt_1);
-	} else if(!strcmp(camera, "left")) {
+	} else if (!strcmp(camera, "left")) {
 		while (caps.format_caps[i].pixelformat) {
 			const struct video_format_cap *fcap = &caps.format_caps[i];
+
 			if (fcap->width_min == w && fcap->height_min == h) {
 				fmt_1.width = w;
 				fmt_1.height = h;
@@ -90,6 +92,7 @@ int ov2640_set_resolution(const struct shell *shell, int w, int h, char* camera)
 	} else if (!strcmp(camera, "right")) {
 		while (caps.format_caps[i].pixelformat) {
 			const struct video_format_cap *fcap = &caps.format_caps[i];
+
 			if (fcap->width_min == w && fcap->height_min == h) {
 				fmt_2.width = w;
 				fmt_2.height = h;
@@ -116,10 +119,10 @@ int ov2640_set_resolution(const struct shell *shell, int w, int h, char* camera)
 }
 
 static int cmd_ov2640_set_brightness(const struct shell *shell, size_t argc,
-			      char **argv)
+				  char **argv)
 {
 	int err = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set brightness to %s...", argv[1]);
@@ -149,10 +152,10 @@ static int cmd_ov2640_set_brightness(const struct shell *shell, size_t argc,
 }
 
 static int cmd_ov2640_set_saturation(const struct shell *shell, size_t argc,
-			      char **argv)
+				  char **argv)
 {
 	int err = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set saturation to %s...", argv[1]);
@@ -222,18 +225,16 @@ static int cmd_ov2640_set_output_format(const struct shell *shell, size_t argc,
 static int cmd_ov2640_set_quality(const struct shell *shell, size_t argc, char **argv)
 {
 	int err = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set quality to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_QUALITY, &arg);
 		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_QUALITY, &arg);
-	}
-	else if (!strcmp(argv[2], "left")) {
+	} else if (!strcmp(argv[2], "left")) {
 		shell_print(shell, "ov2640 (left) - set quality to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_1, VIDEO_CID_CAMERA_QUALITY, &arg);
-	}
-	else if (!strcmp(argv[2], "right")) {
+	} else if (!strcmp(argv[2], "right")) {
 		shell_print(shell, "ov2640 (right) - set quality to %s...", argv[1]);
 		err |= video_set_ctrl(ov2640_dev_2, VIDEO_CID_CAMERA_QUALITY, &arg);
 	} else {
@@ -252,7 +253,7 @@ static int cmd_ov2640_set_quality(const struct shell *shell, size_t argc, char *
 static int cmd_ov2640_set_colorbar(const struct shell *shell, size_t argc, char **argv)
 {
 	int err = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set colorbar to %s...", argv[1]);
@@ -280,7 +281,7 @@ static int cmd_ov2640_set_colorbar(const struct shell *shell, size_t argc, char 
 static int cmd_ov2640_set_whitebal(const struct shell *shell, size_t argc, char **argv)
 {
 	int err = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set white balance to %s...", argv[1]);
@@ -308,7 +309,7 @@ static int cmd_ov2640_set_whitebal(const struct shell *shell, size_t argc, char 
 static int cmd_ov2640_set_gainctrl(const struct shell *shell, size_t argc, char **argv)
 {
 	int err = 0, ret = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set gain to %s...", argv[1]);
@@ -338,7 +339,7 @@ static int cmd_ov2640_set_exposurectrl(const struct shell *shell, size_t argc,
 				char **argv)
 {
 	int err = 0, ret = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set exposure to %s...", argv[1]);
@@ -365,10 +366,10 @@ static int cmd_ov2640_set_exposurectrl(const struct shell *shell, size_t argc,
 }
 
 static int cmd_ov2640_set_horizontal_mirror(const struct shell *shell, size_t argc,
-				     char **argv)
+					 char **argv)
 {
 	int err = 0, ret = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set horizontal mirror to %s...", argv[1]);
@@ -398,7 +399,7 @@ static int cmd_ov2640_set_vertical_flip(const struct shell *shell, size_t argc,
 				 char **argv)
 {
 	int err = 0, ret = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set vertical flip to %s...", argv[1]);
@@ -428,7 +429,7 @@ static int cmd_ov2640_set_clock_div(const struct shell *shell, size_t argc,
 				 char **argv)
 {
 	int err = 0, ret = 0;
-    int arg = atoi(argv[1]);
+	int arg = atoi(argv[1]);
 
 	if (argc == 2 || (argc == 3 && !strcmp(argv[2], "both"))) {
 		shell_print(shell, "ov2640 (both) - set clock divider to %s...", argv[1]);
@@ -455,7 +456,7 @@ static int cmd_ov2640_set_clock_div(const struct shell *shell, size_t argc,
 }
 
 static int cmd_ov2640_set_res_640_480(const struct shell *shell, size_t argc,
-			      char **argv)
+				  char **argv)
 {
 	int ret = 0;
 
@@ -477,7 +478,7 @@ static int cmd_ov2640_set_res_640_480(const struct shell *shell, size_t argc,
 }
 
 static int cmd_ov2640_set_res_800_600(const struct shell *shell, size_t argc,
-			      char **argv)
+				  char **argv)
 {
 	int ret = 0;
 
@@ -499,7 +500,7 @@ static int cmd_ov2640_set_res_800_600(const struct shell *shell, size_t argc,
 }
 
 static int cmd_ov2640_set_res_1024_768(const struct shell *shell, size_t argc,
-			      char **argv)
+				  char **argv)
 {
 	int ret = 0;
 
@@ -521,7 +522,7 @@ static int cmd_ov2640_set_res_1024_768(const struct shell *shell, size_t argc,
 }
 
 static int cmd_ov2640_set_res_1280_1024(const struct shell *shell, size_t argc,
-			      char **argv)
+				  char **argv)
 {
 	int ret = 0;
 
@@ -561,7 +562,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_CMD_ARG(whitebal, NULL, "\t[1|0] Enable/disable automatic white balance", cmd_ov2640_set_whitebal, 2, 1),
 	SHELL_CMD_ARG(gainctrl, NULL, "\t[1|0] Enable/disable automatic gain control", cmd_ov2640_set_gainctrl, 2, 1),
 	SHELL_CMD_ARG(exposurectrl, NULL, "\t[1|0] Enable/disable automatic exposure control", cmd_ov2640_set_exposurectrl,
-		      2, 1),
+			  2, 1),
 	SHELL_CMD_ARG(hflip, NULL, "\t[1|0] Enable/disable horizontal flip", cmd_ov2640_set_horizontal_mirror, 2, 1),
 	SHELL_CMD_ARG(vflip, NULL, "\t[1|0] Enable/disable vertical flip", cmd_ov2640_set_vertical_flip, 2, 1),
 	SHELL_CMD_ARG(clock_div, NULL, "\t(1 to 64) Set camera clock divider", cmd_ov2640_set_clock_div, 2, 1),

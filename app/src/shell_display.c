@@ -85,7 +85,6 @@ struct video_timing vt1024x768_60Hz = {
 	.v_blanking = 38,
 	.v_sync_offset = 3,
 	.v_sync_width = 6,
-
 };
 
 struct video_timing vt800x600_60Hz = {
@@ -131,10 +130,9 @@ struct video_timing vt640x480_60Hz = {
 	.v_blanking = 45,
 	.v_sync_offset = 10,
 	.v_sync_width = 2,
-
 };
 
-void hdmi_reset_sequence()
+void hdmi_reset_sequence(void)
 {
 	hdmi_out0_reset_regs();
 	k_msleep(10);
@@ -343,11 +341,11 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 						"800x600_60Hz\t"
 						"640x480_75Hz\n", NULL),
 	SHELL_CMD_ARG(reset, NULL, "\tReset signal for HDMI core. After setting this to 1, you must manually set it back to 0.\n",
-        cmd_hdmi_reset, 2, 0),
+	cmd_hdmi_reset, 2, 0),
 	SHELL_CMD_ARG(reset_regs, NULL, "\tReset all HDMI registers to 0.\n",
-        cmd_hdmi_reset_regs, 0, 0),
+	cmd_hdmi_reset_regs, 0, 0),
 	SHELL_CMD_ARG(status, NULL, "\tPrint values of HDMI registers.\n",
-        cmd_hdmi_status, 1, 0),
+	cmd_hdmi_status, 1, 0),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(display, &sub_display, "\tConfigure display", NULL);

@@ -11,24 +11,24 @@
 #include "shell_tests.h"
 #include <timing/timing.h>
 
-int hdmi_buffer_index = 0;
+int hdmi_buffer_index;
 int block_buff[3] = { 0 };
-int blocked_buff_gpu = 0;
-int blocked_buff_cam = 0;
-bool callback_cam_block = false;
-bool callback_gpu_block = false;
+int blocked_buff_gpu;
+int blocked_buff_cam;
+bool callback_cam_block;
+bool callback_gpu_block;
 
 void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
-			      uint32_t id, int error_code)
+				  uint32_t id, int error_code)
 {
-	#ifdef MEASURE_PERFORMANCE
-	end_time_cam = timing_counter_get();
+#ifdef MEASURE_PERFORMANCE
+	end_time_cam = timing_buffer_index_get();
 
 	if (n_measure_cam <= 100) {
 		measures_cam[n_measure_cam] = (timing_cycles_to_ns(timing_cycles_get(&start_time_cam, &end_time_cam)) / 1000000);
 		n_measure_cam++;
 	}
-	#endif
+#endif
 
 	dma_block_cfg_cam.dest_address = (uint32_t)hdmi_buffers[cam_buffer_index];
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
@@ -41,43 +41,42 @@ void cam1_dma_user_callback(const struct device *dma_dev, void *arg,
 		cam_buffer_index = 1;
 	}
 
-	#ifdef MEASURE_PERFORMANCE
-	start_time_cam = timing_counter_get();
-	#endif
+#ifdef MEASURE_PERFORMANCE
+	start_time_cam = timing_buffer_index_get();
+#endif
 
 }
 
 void cam_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg,
-			      uint32_t id, int error_code)
+				  uint32_t id, int error_code)
 {
-	#ifdef MEASURE_PERFORMANCE
-	end_time_cam = timing_counter_get();
+#ifdef MEASURE_PERFORMANCE
+	end_time_cam = timing_buffer_index_get();
 
 	if (n_measure_cam <= 100) {
 		measures_cam[n_measure_cam] = (timing_cycles_to_ns(timing_cycles_get(&start_time_cam, &end_time_cam)) / 1000000);
 		n_measure_cam++;
 	}
-	#endif
+#endif
 
 	callback_cam_block = true;
 
-	#ifdef MEASURE_PERFORMANCE
-	start_time_cam = timing_counter_get();
-	#endif
+#ifdef MEASURE_PERFORMANCE
+	start_time_cam = timing_buffer_index_get();
+#endif
 }
 
-
 void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
-			      uint32_t id, int error_code)
+				  uint32_t id, int error_code)
 {
-	#ifdef MEASURE_PERFORMANCE
-	end_time_cam = timing_counter_get();
+#ifdef MEASURE_PERFORMANCE
+	end_time_cam = timing_buffer_index_get();
 
 	if (n_measure_cam <= 100) {
 		measures_cam[n_measure_cam] = (timing_cycles_to_ns(timing_cycles_get(&start_time_cam, &end_time_cam)) / 1000000);
 		n_measure_cam++;
 	}
-	#endif
+#endif
 
 	dma_block_cfg_cam.dest_address = (uint32_t)hdmi_buffers[cam_buffer_index];
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
@@ -90,35 +89,35 @@ void cam2_dma_user_callback(const struct device *dma_dev, void *arg,
 		cam_buffer_index = 1;
 	}
 
-	#ifdef MEASURE_PERFORMANCE
-	start_time_cam = timing_counter_get();
-	#endif
+#ifdef MEASURE_PERFORMANCE
+	start_time_cam = timing_buffer_index_get();
+#endif
 
 }
 
 void gpu_in_dma_user_callback(const struct device *dma_dev, void *arg,
-			      uint32_t id, int error_code)
+				  uint32_t id, int error_code)
 {
 
 }
 
 void gpu_out_dma_user_callback(const struct device *dma_dev, void *arg,
-			      uint32_t id, int error_code)
+				  uint32_t id, int error_code)
 {
-	#ifdef MEASURE_PERFORMANCE
-	end_time_gpu = timing_counter_get();
+#ifdef MEASURE_PERFORMANCE
+	end_time_gpu = timing_buffer_index_get();
 
 	if (n_measure_gpu <= 100) {
 		measures_gpu[n_measure_gpu] = (timing_cycles_to_ns(timing_cycles_get(&start_time_gpu, &end_time_gpu)) / 1000000);
 		n_measure_gpu++;
 	}
-	#endif
+#endif
 
 	callback_gpu_block = true;
 }
 
-
-void dma_init_cam1() {
+void dma_init_cam1(void)
+{
 	dma_cfg_cam1.channel_direction = PERIPHERAL_TO_MEMORY;
 	dma_cfg_cam1.head_block = &dma_block_cfg_cam;
 	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
@@ -146,7 +145,8 @@ void dma_init_cam1() {
 
 }
 
-void dma_init_cam2() {
+void dma_init_cam2(void)
+{
 	dma_cfg_cam2.channel_direction = PERIPHERAL_TO_MEMORY;
 	dma_cfg_cam2.head_block = &dma_block_cfg_cam;
 	dma_cfg_cam2.dma_callback = cam2_dma_user_callback;
@@ -173,7 +173,8 @@ void dma_init_cam2() {
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 }
 
-void dma_init_gpu_inputs() {
+void dma_init_gpu_inputs(void)
+{
 	dma_cfg_gpu_in.channel_direction = MEMORY_TO_PERIPHERAL;
 	dma_cfg_gpu_in.head_block = &dma_block_cfg_gpu_in;
 	dma_cfg_gpu_in.dma_callback = gpu_in_dma_user_callback;
@@ -201,7 +202,8 @@ void dma_init_gpu_inputs() {
 	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
 }
 
-void dma_init_gpu_output() {
+void dma_init_gpu_output(void)
+{
 	dma_cfg_gpu_out.channel_direction = PERIPHERAL_TO_MEMORY;
 	dma_cfg_gpu_out.head_block = &dma_block_cfg_gpu_out;
 	dma_cfg_gpu_out.dma_callback = gpu_out_dma_user_callback;
@@ -257,7 +259,7 @@ void cam(void)
 	while (true) {
 		if (callback_cam_block == true) {
 			if (k_sem_take(&my_sem, K_MSEC(10)) != 0) {
-				printk("Input data not available- cam!\n");
+				printf("Input data not available- %s!\n", __func__);
 			} else {
 				if (!block_buff[0]) {
 					dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
@@ -295,27 +297,31 @@ void cam(void)
 
 void gpu(void)
 {
-	int counter = 0;
-	int counter2 = 1;
+	int buffer_index = 0;
+	int last_buffer_index = 1;
+
 	while (true) {
 		if (callback_gpu_block == true) {
 			if (k_sem_take(&my_sem, K_FOREVER) != 0) {
-				printk("Input data not available - gpu!\n");
+				printf("Input data not available- %s!\n", __func__);
 			} else {
-				hdmi_buffer_index = counter;
+				hdmi_buffer_index = buffer_index;
 				block_buff[blocked_buff_gpu] = false;
 				block_buff[gpu_buffer_index] = true;
 				blocked_buff_gpu = gpu_buffer_index;
 				k_sem_give(&my_sem);
-				if (counter == 0) counter2 = 1;
-				if (counter == 1) counter2 = 2;
-				if (counter == 2) counter2 = 0;
-				blend_images((uint32_t)hdmi_buffers[gpu_buffer_index], (uint32_t)hdmi_buffers_overlay[counter2]);
+				if (buffer_index == 0)
+					last_buffer_index = 1;
+				if (buffer_index == 1)
+					last_buffer_index = 2;
+				if (buffer_index == 2)
+					last_buffer_index = 0;
+				blend_images((uint32_t)hdmi_buffers[gpu_buffer_index], (uint32_t)hdmi_buffers_overlay[last_buffer_index]);
 			}
 			callback_gpu_block = false;
-			counter++;
-			if (counter == 3) {
-				counter = 0;
+			buffer_index++;
+			if (buffer_index == 3) {
+				buffer_index = 0;
 			}
 		}
 		if (suspend_gpu) {
@@ -326,7 +332,7 @@ void gpu(void)
 	}
 }
 
-void suspend_threads()
+void suspend_threads(void)
 {
 	k_thread_suspend(hdmi_id);
 	k_thread_suspend(cam_id);

@@ -8,13 +8,13 @@
 #include "gpu.h"
 #include "init.h"
 
-extern const struct device* ov2640_dev_1;
-extern const struct device* ov2640_dev_2;
-extern const struct device* fastvdma_dev_cam_1;
-extern const struct device* fastvdma_dev_cam_2;
-extern const struct device* fastvdma_dev_gpu_in_1;
-extern const struct device* fastvdma_dev_gpu_in_2;
-extern const struct device* fastvdma_dev_gpu_out;
+extern const struct device *ov2640_dev_1;
+extern const struct device *ov2640_dev_2;
+extern const struct device *fastvdma_dev_cam_1;
+extern const struct device *fastvdma_dev_cam_2;
+extern const struct device *fastvdma_dev_gpu_in_1;
+extern const struct device *fastvdma_dev_gpu_in_2;
+extern const struct device *fastvdma_dev_gpu_out;
 extern uint32_t img_buff_1[1280 * 1024];
 extern uint32_t img_buff_2[1280 * 1024];
 extern uint32_t img_buff_3[1280 * 1024];
@@ -22,8 +22,8 @@ extern uint32_t img_buff_4[1280 * 1024];
 extern uint32_t img_buff_5[1280 * 1024];
 extern uint32_t img_buff_6[1280 * 1024];
 extern uint32_t img_buff_7[1280 * 1024];
-extern uint32_t* hdmi_buffers[3];
-extern uint32_t* hdmi_buffers_overlay[3];
+extern uint32_t *hdmi_buffers[3];
+extern uint32_t *hdmi_buffers_overlay[3];
 extern uint32_t img_length_1;
 extern uint32_t img_length_2;
 extern struct video_format fmt_1;
@@ -61,7 +61,7 @@ extern uint64_t measures_gpu[100];
 extern int n_measure_gpu;
 #endif
 
-extern char* overlay_text;
+extern char *overlay_text;
 
 extern struct k_sem my_sem;
 

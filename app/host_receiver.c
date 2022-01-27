@@ -63,15 +63,17 @@ int receive_remainder_arr(int sock, struct sockaddr *sock_addr, socklen_t *sock_
 	return ret;
 }
 
-void main()
+void main(void)
 {
 	FILE *file;
 	struct sockaddr_in arty_sockaddr;
+
 	arty_sockaddr.sin_family = AF_INET;
 	arty_sockaddr.sin_port = htons(4242);
 	arty_sockaddr.sin_addr.s_addr = htonl(ARTY_ADDR);
 
 	struct sockaddr_in host_sockaddr;
+
 	host_sockaddr.sin_family = AF_INET;
 	host_sockaddr.sin_port = htons(4242);
 	host_sockaddr.sin_addr.s_addr = htonl(HOST_ADDR);
@@ -91,8 +93,9 @@ void main()
 
 	ret = receive_num_msgs_arr(sock, (struct sockaddr *)&host_sockaddr,
 			   (socklen_t *)&addrlen);
-			   
+
 	int num_msgs = num_msgs_arr[0] << 24 | num_msgs_arr[1] << 16 | num_msgs_arr[2] << 8 | num_msgs_arr[3];
+
 	printf("num_msgs: %d\n", num_msgs);
 
 	while (num_msgs) {
@@ -104,7 +107,8 @@ void main()
 				   ret, -errno);
 
 		uint32_t rgb565_pixel = 0;
-		for(int i = 0; i < RECV_LEN; i += 4){
+
+		for (int i = 0; i < RECV_LEN; i += 4) {
 			rgb565_pixel |= buff[i + 3] << 24;
 			rgb565_pixel |= buff[i + 2] << 16;
 			rgb565_pixel |= buff[i + 1] << 8;
@@ -129,17 +133,15 @@ void main()
 					ret, -errno);
 
 		uint32_t rgb565_pixel = 0;
-		for(int i = 0; i < rem; i++){
-			if(i % 4 == 0){
+
+		for (int i = 0; i < rem; i++) {
+			if (i % 4 == 0) {
 				rgb565_pixel |= buff[i] << 24 & 0xff000000;
-			}
-			else if(i % 3 == 0){
+			} else if (i % 3 == 0) {
 				rgb565_pixel |= buff[i] << 16 & 0x00ff0000;
-			}
-			else if(i % 2 == 0){
+			} else if (i % 2 == 0) {
 				rgb565_pixel |= buff[i] << 8 & 0x0000ff00;
-			}
-			else{
+			} else {
 				rgb565_pixel |= buff[i] & 0x000000ff;
 				fwrite(&rgb565_pixel, 1, sizeof(rgb565_pixel), file);
 				rgb565_pixel = 0;

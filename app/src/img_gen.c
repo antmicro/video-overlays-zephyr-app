@@ -20,20 +20,20 @@ void generate_image_with_text(uint32_t image_with_text[], int width, int height)
 		image_with_text[i] = 0;
 	}
 
-	for(int k = 0; k < text_len; k++) {
+	for (int k = 0; k < text_len; k++) {
 		int v_offset;
 		int h_offset = 10;
 		int character = overlay_text[k] - ' ';
 
-		if(width < 480) {
+		if (width < 480) {
 			v_offset = height - 30;
 		} else {
 			v_offset = height - 70;
 		}
 
 		/* Write at [v_offset * width][h_offset + char_offset + char_bit] */
-		for(int i = 12; i >= 0; i --) {
-			if(width < 480) {
+		for (int i = 12; i >= 0; i--) {
+			if (width < 480) {
 				if ((font[character][i] >> 7) & 1) {
 					image_with_text[v_offset * width + h_offset + (k * 13) + 0] = color;
 				}

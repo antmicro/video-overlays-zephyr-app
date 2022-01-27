@@ -55,15 +55,15 @@ uint32_t img_buff_5[1280 * 1024];
 uint32_t img_buff_6[1280 * 1024];
 uint32_t img_buff_7[1280 * 1024];
 
-uint32_t* hdmi_buffers[3] = {img_buff_1, img_buff_2, img_buff_3};
-uint32_t* hdmi_buffers_overlay[3] = {img_buff_4, img_buff_5, img_buff_6};
+uint32_t *hdmi_buffers[3] = {img_buff_1, img_buff_2, img_buff_3};
+uint32_t *hdmi_buffers_overlay[3] = {img_buff_4, img_buff_5, img_buff_6};
 
 uint32_t image_with_text[1280 * 1024];
 uint32_t img_length_1 = 1280 * 1024;
 uint32_t img_length_2 = 1280 * 1024;
 
-int cam_buffer_index = 0;
-int gpu_buffer_index = 0;
+int cam_buffer_index;
+int gpu_buffer_index;
 
 struct video_format fmt_1;
 struct video_format fmt_2;
@@ -86,23 +86,24 @@ const k_tid_t hdmi_id;
 const k_tid_t cam_id;
 const k_tid_t gpu_id;
 
-bool suspend_hdmi = false;
-bool suspend_cam = false;
-bool suspend_gpu = false;
-
-//define MEASURE_PERFORMANCE
+bool suspend_hdmi;
+bool suspend_cam;
+bool suspend_gpu;
+/* Uncomment this line if you want to have printed performance
+ * measurements during test functions
+ */
+/* define MEASURE_PERFORMANCE 1 */
 
 #ifdef MEASURE_PERFORMANCE
 timing_t start_time_cam, end_time_cam;
 timing_t start_time_gpu, end_time_gpu;
 uint64_t measures_cam[100] = {0};
-int n_measure_cam = 0;
+int n_measure_cam;
 uint64_t measures_gpu[100] = {0};
-int n_measure_gpu = 0;
+int n_measure_gpu;
 #endif
 
 struct k_sem my_sem;
-
 
 K_THREAD_DEFINE(hdmi_id, STACKSIZE, hdmi, NULL, NULL, NULL, PRIORITY, 0, 0);
 
@@ -114,17 +115,19 @@ void flush_l2_cache(void)
 {
 #ifdef CONFIG_L2_SIZE
 	unsigned int i;
+
 	for (i = 0; i < 2 * CONFIG_L2_SIZE / 4; i++) {
 		((volatile unsigned int *)MAIN_RAM_BASE)[i];
 	}
 #endif
 }
 
-void led_chaser()
+void led_chaser(void)
 {
 	int pin = 0;
 	gpio_port_pins_t mask_high = 0xf;
 	gpio_port_pins_t mask_low = 0x0;
+
 	while (true) {
 		if (pin == 4) {
 			pin = 0;
@@ -151,15 +154,16 @@ void print_camera_caps(const struct device *dev)
 	}
 
 	int i = 0;
-	printk("- Capabilities:\n");
+
+	printf("- Capabilities:\n");
 	while (caps.format_caps[i].pixelformat) {
 		const struct video_format_cap *fcap = &caps.format_caps[i];
 		/* fourcc to string */
-		printk("  %c%c%c%c width [%u; %u; %u] height [%u; %u; %u]\n",
-		       (char)fcap->pixelformat, (char)(fcap->pixelformat >> 8),
-		       (char)(fcap->pixelformat >> 16), (char)(fcap->pixelformat >> 24),
-		       fcap->width_min, fcap->width_max, fcap->width_step, fcap->height_min,
-		       fcap->height_max, fcap->height_step);
+		printf("  %c%c%c%c width [%u; %u; %u] height [%u; %u; %u]\n",
+			   (char)fcap->pixelformat, (char)(fcap->pixelformat >> 8),
+			   (char)(fcap->pixelformat >> 16), (char)(fcap->pixelformat >> 24),
+			   fcap->width_min, fcap->width_max, fcap->width_step, fcap->height_min,
+			   fcap->height_max, fcap->height_step);
 		i++;
 	}
 }
@@ -173,8 +177,8 @@ int get_camera_fmt(const struct device *dev, struct video_format *fmt)
 	}
 
 	printf("- Default format: %c%c%c%c %ux%u\n", (char)fmt->pixelformat,
-	       (char)(fmt->pixelformat >> 8), (char)(fmt->pixelformat >> 16),
-	       (char)(fmt->pixelformat >> 24), fmt->width, fmt->height);
+		   (char)(fmt->pixelformat >> 8), (char)(fmt->pixelformat >> 16),
+		   (char)(fmt->pixelformat >> 24), fmt->width, fmt->height);
 
 	return 0;
 }
@@ -183,11 +187,10 @@ void main(void)
 {
 	k_sem_init(&my_sem, 0, 1);
 	suspend_threads();
-	
-	#ifdef MEASURE_PERFORMANCE
-    timing_init();
+#ifdef MEASURE_PERFORMANCE
+	timing_init();
 	timing_start();
-	#endif
+#endif
 
 	ov2640_dev_1 = device_get_binding(OV2640_1);
 	ov2640_dev_2 = device_get_binding(OV2640_2);
@@ -209,7 +212,7 @@ void main(void)
 	}
 
 	if (fastvdma_dev_gpu_in_1 == NULL || fastvdma_dev_gpu_in_2 == NULL ||
-	    fastvdma_dev_gpu_out == NULL) {
+		fastvdma_dev_gpu_out == NULL) {
 		printf("GPU fastvdma binding failed.\n");
 		return;
 	}
@@ -219,7 +222,6 @@ void main(void)
 	dma_init_cam2();
 	dma_init_gpu_inputs();
 	dma_init_gpu_output();
-
 
 	print_camera_caps(ov2640_dev_1);
 	print_camera_caps(ov2640_dev_2);

@@ -60,13 +60,13 @@ void cam_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg, uin
 void cam2_dma_user_callback(const struct device *dma_dev, void *arg, uint32_t id, int error_code);
 void gpu_in_dma_user_callback(const struct device *dma_dev, void *arg, uint32_t id, int error_code);
 void gpu_out_dma_user_callback(const struct device *dma_dev, void *arg, uint32_t id, int error_code);
-void dma_init_cam1();
-void dma_init_cam2();
-void dma_init_gpu_inputs();
-void dma_init_gpu_output();
+void dma_init_cam1(void);
+void dma_init_cam2(void);
+void dma_init_gpu_inputs(void);
+void dma_init_gpu_output(void);
 void hdmi(void);
 void cam(void);
 void gpu(void);
-void suspend_threads();
+void suspend_threads(void);
 void hdmi_out0_core_initiator_base_write(uint32_t v);
 void hdmi_out0_core_initiator_enable_write(uint8_t v);

@@ -67,9 +67,10 @@ int send_remainder_arr(int sock, struct sockaddr *sock_addr)
 	return ret;
 }
 
-int init_socket()
+int init_socket(void)
 {
 	int ret;
+
 	arty_sockaddr.sin_family = AF_INET;
 	arty_sockaddr.sin_port = htons(4242);
 	arty_sockaddr.sin_addr.s_addr = htonl(ARTY_ADDR);
@@ -98,6 +99,7 @@ void send_image(uint32_t img_buff[], uint32_t img_length)
 	int ret;
 
 	int num_msgs = img_length * 4 / SEND_LEN;
+
 	rem = (img_length * 4) % SEND_LEN;
 
 	if (rem) {
@@ -119,6 +121,7 @@ void send_image(uint32_t img_buff[], uint32_t img_length)
 			   -errno);
 
 	int k = 0;
+
 	printf("num_msgs: %d\n", num_msgs);
 	while (num_msgs) {
 		for (int i = 0; i < SEND_LEN; i += 4) {
@@ -141,6 +144,7 @@ void send_image(uint32_t img_buff[], uint32_t img_length)
 				ret, -errno);
 
 	int i = 0;
+
 	rem /= 4;
 
 	while (rem) {
