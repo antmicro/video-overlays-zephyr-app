@@ -187,3 +187,7 @@
 		0xf0005808 0x1>;
 	interrupts = <0x7 0>;
 };
+
+&gpio_in {
+	status = "disabled";
+};
