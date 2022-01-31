@@ -8,6 +8,8 @@ Please refer to Zephyr's official
 [getting started guide](https://docs.zephyrproject.org/latest/getting_started/index.html)
 for detailed setup instructions.
 
+The application was created to run on LiteX firmware, which can be found [here](https://github.com/antmicro/video-overlays).
+
 ### Initialization
 
 The first step is to initialize the workspace folder (``workspace``) where
