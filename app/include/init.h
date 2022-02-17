@@ -16,7 +16,7 @@ extern struct dma_config dma_cfg_gpu_out;
 extern struct dma_block_config dma_block_cfg_cam;
 extern struct dma_block_config dma_block_cfg_gpu_in;
 extern struct dma_block_config dma_block_cfg_gpu_out;
-extern uint32_t image_with_text[1280 * 1024];
+extern uint32_t overlay_image[1280 * 1024];
 extern uint32_t img_buff_1[1280 * 1024];
 extern uint32_t img_buff_2[1280 * 1024];
 extern uint32_t img_buff_3[1280 * 1024];

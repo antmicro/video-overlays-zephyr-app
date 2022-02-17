@@ -6,6 +6,7 @@
 
 #include <zephyr.h>
 #include <shell/shell.h>
+#include <stdlib.h>
 #include "img_gen.h"
 
 extern uint32_t image_with_text[1280 * 1024];
@@ -14,6 +15,8 @@ extern struct video_format fmt_1;
 extern struct video_format fmt_2;
 extern enum overlay_mode {text, logo} overlay_mode;
 extern enum overlay_mode overlay_mode;
+extern uint32_t logo_offset_x;
+extern uint32_t logo_offset_y;
 
 static int cmd_set_text(const struct shell *shell, size_t argc, char **argv)
 {
@@ -37,6 +40,16 @@ static int cmd_set_mode(const struct shell *shell, size_t argc, char **argv)
 	return 0;
 }
 
+static int cmd_set_logo_pos(const struct shell *shell, size_t argc, char **argv)
+{
+	if(atoi(argv[1]) < 1280 && atoi(argv[2]) < 1024) {
+		logo_offset_x = atoi(argv[1]);
+		logo_offset_y = atoi(argv[2]);
+	}
+
+	return 0;
+}
+
 static int cmd_print_text(const struct shell *shell, size_t argc, char **argv)
 {
 	shell_print(shell, "Overlay text: '%s'", overlay_text);
@@ -48,6 +61,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_overlay,
 	SHELL_CMD_ARG(set_text, NULL, "\tSet overlay text (max 25 characters)", cmd_set_text, 2, 0),
 	SHELL_CMD_ARG(set_mode, NULL, "\tSet overlay mode - text/logo", cmd_set_mode, 2, 0),
+	SHELL_CMD_ARG(set_logo_pos, NULL, "\tSet logo position on image", cmd_set_logo_pos, 3, 0),
 	SHELL_CMD_ARG(print_text, NULL, "\tPrint overlay text", cmd_print_text, 1, 0),
 	SHELL_SUBCMD_SET_END);
 

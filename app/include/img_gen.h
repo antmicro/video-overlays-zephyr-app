@@ -5,3 +5,4 @@
  */
 
 void generate_image_with_text(uint32_t image_with_text[], int width, int height);
+int generate_image_with_logo(uint32_t overlay_image[], int width, int height, int offset_x, int offset_y);

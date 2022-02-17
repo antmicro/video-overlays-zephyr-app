@@ -19,7 +19,6 @@
 #include "pattern.h"
 #include "net.h"
 #include "hdmi.h"
-#include "antmicro_logo_overlay.h"
 
 void clean_measures(uint64_t measures[])
 {
@@ -270,12 +269,6 @@ void display_video_with_overlay_cam1(void)
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 
-	if (overlay_mode == text) {
-		dma_block_cfg_gpu_in.source_address = (uint32_t)&image_with_text;
-	} else {
-		dma_block_cfg_gpu_in.source_address = (uint32_t)&overlay_image;
-	}
-
 	dma_block_cfg_gpu_in.dest_address = 0;
 	dma_block_cfg_gpu_in.source_gather_count = fmt_1.height;
 	dma_block_cfg_gpu_in.dest_scatter_count = fmt_1.height;
@@ -306,7 +299,6 @@ void display_video_with_overlay_cam1(void)
 	k_thread_resume(cam_id);
 	k_thread_resume(gpu_id);
 
-	generate_image_with_text(image_with_text, fmt_1.width, fmt_1.height);
 #ifdef MEASURE_PERFORMANCE
 	start_time_gpu = timing_counter_get();
 #endif
@@ -323,11 +315,6 @@ void display_video_with_overlay_cam2(void)
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 
-	if (overlay_mode == text) {
-		dma_block_cfg_gpu_in.source_address = (uint32_t)&image_with_text;
-	} else {
-		dma_block_cfg_gpu_in.source_address = (uint32_t)&overlay_image;
-	}
 	dma_block_cfg_gpu_in.dest_address = 0;
 	dma_block_cfg_gpu_in.source_gather_count = fmt_1.height;
 	dma_block_cfg_gpu_in.dest_scatter_count = fmt_1.height;
@@ -356,7 +343,6 @@ void display_video_with_overlay_cam2(void)
 	k_thread_resume(hdmi_id);
 	k_thread_resume(cam_id);
 	k_thread_resume(gpu_id);
-	generate_image_with_text(image_with_text, fmt_2.width, fmt_2.height);
 #ifdef MEASURE_PERFORMANCE
 	start_time_gpu = timing_counter_get();
 #endif
@@ -372,7 +358,15 @@ static int cmd_display_image_with_overlay(const struct shell *shell, size_t argc
 	dma_start(fastvdma_dev_cam_1, 0);
 	k_msleep(300);
 	dma_stop(fastvdma_dev_cam_1, 0);
-	generate_image_with_text((uint32_t *)&image_with_text, fmt_1.width, fmt_1.height);
+
+	if (overlay_mode == text) {
+		generate_image_with_text(overlay_image, fmt_1.width, fmt_1.height);
+	} else {
+		if(generate_image_with_logo(overlay_image, fmt_1.width, fmt_1.height, logo_offset_x, logo_offset_y)) {
+			shell_error(shell, "Logo placed out of image border, did not generate.");
+		}
+	}
+
 	blend_images((uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
 
 	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
@@ -383,10 +377,16 @@ static int cmd_display_image_with_overlay(const struct shell *shell, size_t argc
 static int cmd_generate_and_send_overlay(const struct shell *shell, size_t argc,
 				char **argv)
 {
-	generate_image_with_text((uint32_t *)&image_with_text, fmt_1.width, fmt_1.height);
+	if (overlay_mode == text) {
+		generate_image_with_text(overlay_image, fmt_1.width, fmt_1.height);
+	} else {
+		if(generate_image_with_logo(overlay_image, fmt_1.width, fmt_1.height, logo_offset_x, logo_offset_y)) {
+			shell_error(shell, "Logo placed out of image border, did not generate.");
+		}
+	}
 
 	shell_print(shell, "send generated image...");
-	send_image((uint32_t *)&image_with_text, img_length_1);
+	send_image((uint32_t *)&overlay_image, img_length_1);
 
 	return 0;
 }
@@ -427,10 +427,30 @@ static int cmd_display_video_with_overlay(const struct shell *shell, size_t argc
 {
 	if (!strcmp(argv[1], "left")) {
 		shell_print(shell, "Displaying stream from LEFT camera with applied overlay...");
+
+		if (overlay_mode == text) {
+			generate_image_with_text(overlay_image, fmt_1.width, fmt_1.height);
+		} else {
+			if(generate_image_with_logo(overlay_image, fmt_1.width, fmt_1.height, logo_offset_x, logo_offset_y)) {
+				shell_error(shell, "Logo placed out of image border, did not generate.");
+			}
+		}
+
+		dma_block_cfg_gpu_in.source_address = (uint32_t)&overlay_image;
 		display_video_with_overlay_cam1();
 		set_bypass(shell, bypass_cb_overlay);
 	} else if (!strcmp(argv[1], "right")) {
 		shell_print(shell, "Displaying stream from RIGHT camera with applied overlay...");
+
+		if (overlay_mode == text) {
+			generate_image_with_text(overlay_image, fmt_2.width, fmt_2.height);
+		} else {
+			if(generate_image_with_logo(overlay_image, fmt_2.width, fmt_2.height, logo_offset_x, logo_offset_y)) {
+				shell_error(shell, "Logo placed out of image border, did not generate.");
+			}
+		}
+
+		dma_block_cfg_gpu_in.source_address = (uint32_t)&overlay_image;
 		display_video_with_overlay_cam2();
 		set_bypass(shell, bypass_cb_overlay);
 	} else {

@@ -58,9 +58,11 @@ uint32_t img_buff_7[1280 * 1024];
 uint32_t *hdmi_buffers[3] = {img_buff_1, img_buff_2, img_buff_3};
 uint32_t *hdmi_buffers_overlay[3] = {img_buff_4, img_buff_5, img_buff_6};
 
-uint32_t image_with_text[1280 * 1024];
-uint32_t img_length_1 = 1280 * 1024;
-uint32_t img_length_2 = 1280 * 1024;
+uint32_t overlay_image[1280 * 1024];
+uint32_t img_length_1 = 800 * 600;
+uint32_t img_length_2 = 800 * 600;
+uint32_t logo_offset_x;
+uint32_t logo_offset_y;
 
 int cam_buffer_index;
 int gpu_buffer_index;
