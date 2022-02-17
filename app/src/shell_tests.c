@@ -19,6 +19,7 @@
 #include "pattern.h"
 #include "net.h"
 #include "hdmi.h"
+#include "antmicro_logo_overlay.h"
 
 void clean_measures(uint64_t measures[])
 {
@@ -269,7 +270,12 @@ void display_video_with_overlay_cam1(void)
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 
-	dma_block_cfg_gpu_in.source_address = (uint32_t)&image_with_text;
+	if (overlay_mode == text) {
+		dma_block_cfg_gpu_in.source_address = (uint32_t)&image_with_text;
+	} else {
+		dma_block_cfg_gpu_in.source_address = (uint32_t)&overlay_image;
+	}
+
 	dma_block_cfg_gpu_in.dest_address = 0;
 	dma_block_cfg_gpu_in.source_gather_count = fmt_1.height;
 	dma_block_cfg_gpu_in.dest_scatter_count = fmt_1.height;
@@ -317,7 +323,11 @@ void display_video_with_overlay_cam2(void)
 	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 
-	dma_block_cfg_gpu_in.source_address = (uint32_t)&image_with_text;
+	if (overlay_mode == text) {
+		dma_block_cfg_gpu_in.source_address = (uint32_t)&image_with_text;
+	} else {
+		dma_block_cfg_gpu_in.source_address = (uint32_t)&overlay_image;
+	}
 	dma_block_cfg_gpu_in.dest_address = 0;
 	dma_block_cfg_gpu_in.source_gather_count = fmt_1.height;
 	dma_block_cfg_gpu_in.dest_scatter_count = fmt_1.height;

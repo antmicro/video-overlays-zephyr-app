@@ -55,6 +55,8 @@ extern int n_measure_gpu;
 extern enum mode mode;
 extern struct k_sem my_sem;
 
+extern enum overlay_mode overlay_mode;
+
 void cam1_dma_user_callback(const struct device *dma_dev, void *arg, uint32_t id, int error_code);
 void cam_with_gpu_dma_user_callback(const struct device *dma_dev, void *arg, uint32_t id, int error_code);
 void cam2_dma_user_callback(const struct device *dma_dev, void *arg, uint32_t id, int error_code);

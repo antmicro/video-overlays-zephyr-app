@@ -80,6 +80,9 @@ struct dma_block_config dma_block_cfg_gpu_out = { 0 };
 enum mode {cams, overlay } mode;
 enum mode mode = cams;
 
+enum overlay_mode {text, logo} overlay_mode;
+enum overlay_mode overlay_mode = text;
+
 char overlay_text[25] = "Video Overlays 2022";
 
 const k_tid_t hdmi_id;

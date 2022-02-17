@@ -65,6 +65,9 @@ extern char *overlay_text;
 
 extern struct k_sem my_sem;
 
+extern enum overlay_mode {text, logo} overlay_mode;
+extern enum overlay_mode overlay_mode;
+
 #define CHAR_CAN 0x18
 #define CHAR_DC1 0x11
 
