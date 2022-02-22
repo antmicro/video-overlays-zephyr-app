@@ -19,6 +19,8 @@
 #include "pattern.h"
 #include "net.h"
 #include "hdmi.h"
+#include "image_1.h"
+#include "image_2.h"
 
 void clean_measures(uint64_t measures[])
 {
@@ -460,6 +462,65 @@ static int cmd_display_video_with_overlay(const struct shell *shell, size_t argc
 	return 0;
 }
 
+static int cmd_display_blent_images(const struct shell *shell, size_t argc, char **argv)
+{
+
+#if !defined(IMAGE_1_WIDTH) || !defined(IMAGE_1_HEIGTH) || !defined(IMAGE_2_WIDTH) || !defined(IMAGE_2_HEIGTH)
+	shell_error(shell, "Images to blend not defined.");
+	return 1;
+#else
+	if(IMAGE_1_WIDTH != IMAGE_2_WIDTH || IMAGE_1_HEIGTH != IMAGE_2_HEIGTH) {
+		shell_error(shell, "Images have different size.");
+		return 1;
+	}
+
+	if(IMAGE_1_WIDTH == 1280 && IMAGE_1_HEIGTH == 1024) {
+		shell_print(shell, "Please make sure that resolution is set to 1280x1024.");
+	} else if(IMAGE_1_WIDTH == 1024 && IMAGE_1_HEIGTH == 768) {
+		shell_print(shell, "Please make sure that resolution is set to 1024x768.");
+	} else if(IMAGE_1_WIDTH == 800 && IMAGE_1_HEIGTH == 600) {
+		shell_print(shell, "Please make sure that resolution is set to 800x600.");
+	} else if(IMAGE_1_WIDTH == 640 && IMAGE_1_HEIGTH == 480) {
+		shell_print(shell, "Please make sure that resolution is set to 640x480.");
+	} else {
+		shell_print(shell, "Images have unsupported resolution.");
+		return 1;
+	}
+	shell_print(shell, "Incorrect HDMI resolution may result with corrupted image displayed.\n");
+	shell_print(shell, "Displaying image 2 applied on top of image 1...");
+
+	/* Configure DMAs */
+	dma_block_cfg_gpu_in.dest_address = 0;
+	dma_block_cfg_gpu_in.source_gather_count = IMAGE_1_HEIGTH;
+	dma_block_cfg_gpu_in.dest_scatter_count = IMAGE_1_HEIGTH;
+	dma_block_cfg_gpu_in.block_size = IMAGE_1_WIDTH * IMAGE_1_HEIGTH;
+	dma_block_cfg_gpu_out.source_gather_count = IMAGE_1_HEIGTH;
+	dma_block_cfg_gpu_out.dest_scatter_count = IMAGE_1_HEIGTH;
+	dma_block_cfg_gpu_out.block_size = IMAGE_1_WIDTH * IMAGE_1_HEIGTH;
+
+	dma_block_cfg_gpu_in.source_address = (uint32_t)&image_2;
+	dma_config(fastvdma_dev_gpu_in_1, 0, &dma_cfg_gpu_in);
+	dma_block_cfg_gpu_in.source_address = (uint32_t)&image_1;
+	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
+	dma_block_cfg_gpu_out.source_address = 0;
+	dma_block_cfg_gpu_out.dest_address = (uint32_t)&img_buff_1;
+	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg_gpu_out);
+
+	/* Start GPU */
+	GPU->CR = GPU_CR_ALPHA_BLENDER;
+
+	/* Start GPU DMAs */
+	dma_start(fastvdma_dev_gpu_in_1, 0);
+	dma_start(fastvdma_dev_gpu_in_2, 0);
+	dma_start(fastvdma_dev_gpu_out, 0);
+
+	hdmi_out0_core_initiator_enable_write(1);
+	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
+
+	return 0;
+#endif
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(
 	sub_test,
 	SHELL_CMD_ARG(display_colors, NULL,
@@ -482,7 +543,10 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 		cmd_generate_and_send_overlay, 1, 0),
 	SHELL_CMD_ARG(send_image, NULL,
 		"\tSend image via UPD at 192.0.2.2. Provide either left or right to choose which buffer should be sent. If none provided these will be sent one after another starting with the left one.\n",
-	cmd_send_image, 1, 1),
+		cmd_send_image, 1, 1),
+	SHELL_CMD_ARG(display_blent_images, NULL,
+		"\tBlend 2 images saved in memory and display them via HDMI.\n",
+		cmd_display_blent_images, 1, 0),
 	SHELL_SUBCMD_SET_END);
 
 SHELL_CMD_REGISTER(test, &sub_test, "\tTest app functionalities.", NULL);
