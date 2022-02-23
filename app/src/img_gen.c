@@ -128,10 +128,10 @@ int generate_image_with_logo(uint32_t overlay_image[], int width, int height, in
 	int iter = 0;
 	for(int row = 0; row < LOGO_HEIGHT; row++) {
 		for(int col = 0; col < LOGO_WIDTH; col++) {
-			int pixel = logo[iter + 3] << 24 |
-						logo[iter + 2] << 16 |
-						logo[iter + 1] << 8  |
-						logo[iter + 0];
+			int pixel = logo_rgba[iter + 3] << 24 |
+						logo_rgba[iter + 2] << 16 |
+						logo_rgba[iter + 1] << 8  |
+						logo_rgba[iter + 0];
 			iter += 4;
 
 			overlay_image[((offset_y + row) * width) + (offset_x + col)] = pixel;
