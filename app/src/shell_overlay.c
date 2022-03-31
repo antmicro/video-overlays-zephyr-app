@@ -8,8 +8,8 @@
 #include <shell/shell.h>
 #include <stdlib.h>
 #include "img_gen.h"
+#include "common.h"
 
-extern uint32_t image_with_text[1280 * 1024];
 extern char overlay_text[25];
 extern struct video_format fmt_1;
 extern struct video_format fmt_2;
@@ -42,7 +42,7 @@ static int cmd_set_mode(const struct shell *shell, size_t argc, char **argv)
 
 static int cmd_set_logo_pos(const struct shell *shell, size_t argc, char **argv)
 {
-	if(atoi(argv[1]) < 1280 && atoi(argv[2]) < 1024) {
+	if(atoi(argv[1]) < MAX_IMG_WIDTH && atoi(argv[2]) < MAX_IMG_HEIGTH) {
 		logo_offset_x = atoi(argv[1]);
 		logo_offset_y = atoi(argv[2]);
 	}

@@ -10,6 +10,8 @@
 #include "font.h"
 #include "logo_antmicro.h"
 
+#define CHAR_WIDTH_INDEX 7
+
 extern char overlay_text[25];
 
 void generate_image_with_text(uint32_t overlay_image[], int width, int height)
@@ -35,79 +37,20 @@ void generate_image_with_text(uint32_t overlay_image[], int width, int height)
 		/* Write at [v_offset * width][h_offset + char_offset + char_bit] */
 		for(int i = 0; i <= 15; i++) {
 			if (width < 480) {
-				if ((font[character][i] >> 7) & 1) {
-					overlay_image[v_offset * width + h_offset + (k * 13) + 0] = color;
-				}
-				if ((font[character][i] >> 6) & 1) {
-					overlay_image[v_offset * width + h_offset + (k * 13) + 1] = color;
-				}
-				if ((font[character][i] >> 5) & 1) {
-					overlay_image[v_offset * width + h_offset + (k * 13) + 2] = color;
-				}
-				if ((font[character][i] >> 4) & 1) {
-					overlay_image[v_offset * width + h_offset + (k * 13) + 3] = color;
-				}
-				if ((font[character][i] >> 3) & 1) {
-					overlay_image[v_offset * width + h_offset + (k * 13) + 4] = color;
-				}
-				if ((font[character][i] >> 2) & 1) {
-					overlay_image[v_offset * width + h_offset + (k * 13) + 5] = color;
-				}
-				if ((font[character][i] >> 1) & 1) {
-					overlay_image[v_offset * width + h_offset + (k * 13) + 6] = color;
-				}
-				if ((font[character][i] >> 0) & 1) {
-					overlay_image[v_offset * width + h_offset + (k * 13) + 7] = color;
+				for (int j = 0; j < CHAR_WIDTH_INDEX; j++) {
+					if ((font[character][i] >> (CHAR_WIDTH_INDEX - j)) & 1) {
+						overlay_image[v_offset * width + h_offset + (k * 13) + j] = color;
+					}
 				}
 				v_offset++;
 			} else {
-				if ((font[character][i] >> 7) & 1) {
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 0] = color;
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 1] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 0] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 1] = color;
-				}
-				if ((font[character][i] >> 6) & 1) {
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 2] = color;
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 3] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 2] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 3] = color;
-				}
-				if ((font[character][i] >> 5) & 1) {
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 4] = color;
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 5] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 4] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 5] = color;
-				}
-				if ((font[character][i] >> 4) & 1) {
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 6] = color;
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 7] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 6] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 7] = color;
-				}
-				if ((font[character][i] >> 3) & 1) {
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 8] = color;
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 9] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 8] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 9] = color;
-				}
-				if ((font[character][i] >> 2) & 1) {
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 10] = color;
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 11] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 10] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 11] = color;
-				}
-				if ((font[character][i] >> 1) & 1) {
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 12] = color;
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 13] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 12] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 13] = color;
-				}
-				if ((font[character][i] >> 0) & 1) {
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 14] = color;
-					overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + 15] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 14] = color;
-					overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + 15] = color;
+				for (int j = 0; j < CHAR_WIDTH_INDEX; j++) {
+					if ((font[character][i] >> (CHAR_WIDTH_INDEX - j)) & 1) {
+						overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + (2 * j)] = color;
+						overlay_image[(v_offset + 0) * width + h_offset + (k * 13 * 2) + ((2 * j) + 1)] = color;
+						overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + (2 * j)] = color;
+						overlay_image[(v_offset + 1) * width + h_offset + (k * 13 * 2) + ((2 * j) + 1)] = color;
+					}
 				}
 				v_offset += 2;
 			}

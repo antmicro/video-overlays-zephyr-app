@@ -17,6 +17,7 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
 
+#include "common.h"
 #include "net.h"
 
 #define OV2640_1 "OV2640_1"
@@ -38,6 +39,11 @@ LOG_MODULE_REGISTER(app);
 #define STACKSIZE 1024
 #define PRIORITY 7
 
+/* Uncomment this line if you want to have printed performance
+ * measurements during test functions
+ */
+// #define MEASURE_PERFORMANCE 1
+
 const struct device *ov2640_dev_1;
 const struct device *ov2640_dev_2;
 const struct device *fastvdma_dev_cam_1;
@@ -47,18 +53,17 @@ const struct device *fastvdma_dev_gpu_in_2;
 const struct device *fastvdma_dev_gpu_out;
 const struct device *gpio_expander;
 
-uint32_t img_buff_1[1280 * 1024];
-uint32_t img_buff_2[1280 * 1024];
-uint32_t img_buff_3[1280 * 1024];
-uint32_t img_buff_4[1280 * 1024];
-uint32_t img_buff_5[1280 * 1024];
-uint32_t img_buff_6[1280 * 1024];
-uint32_t img_buff_7[1280 * 1024];
+uint32_t cam_buff_1[MAX_IMG_SIZE];
+uint32_t cam_buff_2[MAX_IMG_SIZE];
+uint32_t cam_buff_3[MAX_IMG_SIZE];
+uint32_t gpu_buff_1[MAX_IMG_SIZE];
+uint32_t gpu_buff_2[MAX_IMG_SIZE];
+uint32_t gpu_buff_3[MAX_IMG_SIZE];
 
-uint32_t *hdmi_buffers[3] = {img_buff_1, img_buff_2, img_buff_3};
-uint32_t *hdmi_buffers_overlay[3] = {img_buff_4, img_buff_5, img_buff_6};
+uint32_t *hdmi_buffers[3] = {cam_buff_1, cam_buff_2, cam_buff_3};
+uint32_t *hdmi_buffers_overlay[3] = {gpu_buff_1, gpu_buff_2, gpu_buff_3};
 
-uint32_t overlay_image[1280 * 1024];
+uint32_t overlay_image[MAX_IMG_SIZE];
 uint32_t img_length_1 = 800 * 600;
 uint32_t img_length_2 = 800 * 600;
 uint32_t logo_offset_x;
@@ -94,10 +99,6 @@ const k_tid_t gpu_id;
 bool suspend_hdmi;
 bool suspend_cam;
 bool suspend_gpu;
-/* Uncomment this line if you want to have printed performance
- * measurements during test functions
- */
-/* define MEASURE_PERFORMANCE 1 */
 
 #ifdef MEASURE_PERFORMANCE
 timing_t start_time_cam, end_time_cam;
@@ -165,10 +166,10 @@ void print_camera_caps(const struct device *dev)
 		const struct video_format_cap *fcap = &caps.format_caps[i];
 		/* fourcc to string */
 		printf("  %c%c%c%c width [%u; %u; %u] height [%u; %u; %u]\n",
-			   (char)fcap->pixelformat, (char)(fcap->pixelformat >> 8),
-			   (char)(fcap->pixelformat >> 16), (char)(fcap->pixelformat >> 24),
-			   fcap->width_min, fcap->width_max, fcap->width_step, fcap->height_min,
-			   fcap->height_max, fcap->height_step);
+				(char)fcap->pixelformat, (char)(fcap->pixelformat >> 8),
+				(char)(fcap->pixelformat >> 16), (char)(fcap->pixelformat >> 24),
+				fcap->width_min, fcap->width_max, fcap->width_step, fcap->height_min,
+				fcap->height_max, fcap->height_step);
 		i++;
 	}
 }
@@ -182,8 +183,8 @@ int get_camera_fmt(const struct device *dev, struct video_format *fmt)
 	}
 
 	printf("- Default format: %c%c%c%c %ux%u\n", (char)fmt->pixelformat,
-		   (char)(fmt->pixelformat >> 8), (char)(fmt->pixelformat >> 16),
-		   (char)(fmt->pixelformat >> 24), fmt->width, fmt->height);
+			(char)(fmt->pixelformat >> 8), (char)(fmt->pixelformat >> 16),
+			(char)(fmt->pixelformat >> 24), fmt->width, fmt->height);
 
 	return 0;
 }
@@ -207,18 +208,18 @@ void main(void)
 	gpio_expander = device_get_binding(GPIO_EXPANDER);
 
 	if (ov2640_dev_1 == NULL || ov2640_dev_2 == NULL) {
-		printf("ov2640 camera binding failed.\n");
+		printf("Camera sensor binding failed.\n");
 		return;
 	}
 
 	if (fastvdma_dev_cam_1 == NULL || fastvdma_dev_cam_2 == NULL) {
-		printf("fastvdma binding failed.\n");
+		printf("Camera DMA binding failed.\n");
 		return;
 	}
 
 	if (fastvdma_dev_gpu_in_1 == NULL || fastvdma_dev_gpu_in_2 == NULL ||
 		fastvdma_dev_gpu_out == NULL) {
-		printf("GPU fastvdma binding failed.\n");
+		printf("GPU DMA binding failed.\n");
 		return;
 	}
 

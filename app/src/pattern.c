@@ -23,42 +23,42 @@ static int inc_color(int color)
 	return color % 8;
 }
 
-void draw_pattern(int h_active, int v_active)
+void draw_pattern(uint32_t img_buff[])
 {;
 	int i;
 	int color;
 
 	color = -1;
 	/* color bar pattern */
-	for (i = 0; i < h_active * v_active; i++) {
-		if (i % (h_active / 32) == 0)
+	for (i = 0; i < MAX_IMG_SIZE; i++) {
+		if (i % (MAX_IMG_HEIGTH / 32) == 0)
 			color = inc_color(color);
 		if (color >= 0)
-			img_buff_7[i] = color_bar[color];
+			img_buff[i] = color_bar[color];
 	}
 }
 
-void draw_color(int h_active, int v_active, int color)
+void draw_color(uint32_t img_buff[], int color)
 {
 	/* color bar pattern */
-	for (int i = 0; i < h_active * v_active; i++) {
-		img_buff_7[i] = color;
+	for (int i = 0; i < MAX_IMG_SIZE; i++) {
+		img_buff[i] = color;
 	}
 }
 
-void draw_image(int h_active, int v_active)
+void draw_colorbar(uint32_t img_buff[])
 {
 	/* color bar pattern */
 	int temp = 0;
 
-	for (int i = 0; i < h_active * v_active; i++) {
-		if (i % h_active == 0) {
+	for (int i = 0; i < MAX_IMG_SIZE; i++) {
+		if (i % MAX_IMG_HEIGTH == 0) {
 			temp++;
 		}
 		if (temp % 2 == 0) {
-			img_buff_7[i] = RGB_GREEN;
+			img_buff[i] = RGB_GREEN;
 		} else {
-			img_buff_7[i] = RGB_RED;
+			img_buff[i] = RGB_RED;
 		}
 	}
 }

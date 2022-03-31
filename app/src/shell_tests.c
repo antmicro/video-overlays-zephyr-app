@@ -36,6 +36,20 @@ void display_measures(uint64_t measures[])
 	}
 }
 
+void reset_cam_buffers()
+{
+	for(int i = 0; i < 3; i++) {
+		draw_color(hdmi_buffers[i], RGB_BLACK);
+	}
+}
+
+void reset_gpu_buffers()
+{
+	for(int i = 0; i < 3; i++) {
+		draw_color(hdmi_buffers_overlay[i], RGB_BLACK);
+	}
+}
+
 static int set_bypass(const struct shell *sh, shell_bypass_cb_t bypass)
 {
 	static bool in_use;
@@ -68,9 +82,9 @@ static void bypass_cb_cams(const struct shell *sh, uint8_t *recv, size_t len)
 		suspend_hdmi = true;
 		dma_stop(fastvdma_dev_cam_1, 0);
 		dma_stop(fastvdma_dev_cam_2, 0);
-		draw_color(fmt_1.width, fmt_1.height, RGB_BLACK);
+		draw_color(gpu_buff_1, RGB_BLACK);
 		k_msleep(10);
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
+		hdmi_out0_core_initiator_base_write((uint32_t)&gpu_buff_1);
 		hdmi_out0_core_initiator_enable_write(1);
 #ifdef MEASURE_PERFORMANCE
 		printf("Measures cam:\n");
@@ -86,6 +100,7 @@ static void bypass_cb_cams(const struct shell *sh, uint8_t *recv, size_t len)
 
 static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 {
+	struct dma_status gpu_out_status;
 	bool escape = false;
 
 	if (recv[len - 1] == CHAR_CAN) {
@@ -101,11 +116,19 @@ static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 		dma_stop(fastvdma_dev_gpu_in_1, 0);
 		dma_stop(fastvdma_dev_gpu_in_2, 0);
 		dma_stop(fastvdma_dev_gpu_out, 0);
+
+		/* Make sure we don't write to a buffer before GPU finishes */
+		do {
+			dma_get_status(fastvdma_dev_gpu_out, 0, &gpu_out_status);
+		} while(gpu_out_status.busy);
+
+		/* GPU finished są write a black frame to its buffer and display it */
 		k_msleep(10);
-		draw_color(fmt_1.width, fmt_1.height, RGB_BLACK);
+		draw_color(gpu_buff_1, RGB_BLACK);
 		k_msleep(10);
-		hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
+		hdmi_out0_core_initiator_base_write((uint32_t)&gpu_buff_1);
 		hdmi_out0_core_initiator_enable_write(1);
+
 #ifdef MEASURE_PERFORMANCE
 		printf("Measures cam:\n");
 		display_measures(measures_cam);
@@ -116,6 +139,7 @@ static void bypass_cb_overlay(const struct shell *sh, uint8_t *recv, size_t len)
 		clean_measures(measures_gpu);
 		n_measure_gpu = 0;
 #endif
+
 		shell_print(sh, "Exiting...");
 		k_sem_reset(&my_sem);
 		k_sem_give(&my_sem);
@@ -136,14 +160,14 @@ static int cmd_send_image(const struct shell *shell, size_t argc,
 
 	if (argc == 1 || (argc == 2 && !strcmp(argv[1], "both"))) {
 		shell_print(shell, "ov2640 (both) - send image...");
-		send_image((uint32_t *)&img_buff_1, img_length_1);
-		send_image((uint32_t *)&img_buff_2, img_length_2);
+		send_image((uint32_t *)&cam_buff_1, img_length_1);
+		send_image((uint32_t *)&cam_buff_2, img_length_2);
 	} else if (!strcmp(argv[1], "left")) {
 		shell_print(shell, "ov2640 (left) - send image...");
-		send_image((uint32_t *)&img_buff_1, img_length_1);
+		send_image((uint32_t *)&cam_buff_1, img_length_1);
 	} else if (!strcmp(argv[1], "right")) {
 		shell_print(shell, "ov2640 (right) - send image...");
-		send_image((uint32_t *)&img_buff_2, img_length_2);
+		send_image((uint32_t *)&cam_buff_2, img_length_2);
 	} else {
 		shell_error(shell, "Wrong function parameters.");
 		err = -1;
@@ -180,19 +204,19 @@ void blend_images(uint32_t read_addr, uint32_t write_addr)
 static int cmd_display_colors(const struct shell *shell, size_t argc, char **argv)
 {
 	hdmi_out0_core_initiator_enable_write(1);
-	draw_color(fmt_1.height, fmt_1.width, RGB_RED);
+	draw_color(gpu_buff_1, RGB_RED);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
+	hdmi_out0_core_initiator_base_write((uint32_t)&gpu_buff_1);
 
 	k_msleep(1000);
-	draw_color(fmt_1.height, fmt_1.width, RGB_GREEN);
+	draw_color(gpu_buff_1, RGB_GREEN);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
+	hdmi_out0_core_initiator_base_write((uint32_t)&gpu_buff_1);
 
 	k_msleep(1000);
-	draw_color(fmt_1.height, fmt_1.width, RGB_BLUE);
+	draw_color(gpu_buff_1, RGB_BLUE);
 	k_msleep(1000);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
+	hdmi_out0_core_initiator_base_write((uint32_t)&gpu_buff_1);
 
 	return 0;
 }
@@ -203,12 +227,12 @@ void display_buffer1(void)
 	dma_block_cfg_cam.source_gather_en = 0;
 	dma_block_cfg_cam.dest_scatter_en = 0;
 	dma_cfg_cam1.dma_callback = NULL;
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+	dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 	dma_start(fastvdma_dev_cam_1, 0);
 	hdmi_out0_core_initiator_enable_write(1);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
+	hdmi_out0_core_initiator_base_write((uint32_t)&cam_buff_1);
 
 	/* enable loop mode */
 	dma_block_cfg_cam.source_gather_en = 1;
@@ -221,12 +245,12 @@ void display_buffer2(void)
 	dma_block_cfg_cam.source_gather_en = 0;
 	dma_block_cfg_cam.dest_scatter_en = 0;
 	dma_cfg_cam2.dma_callback = NULL;
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+	dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 	dma_start(fastvdma_dev_cam_2, 0);
 	hdmi_out0_core_initiator_enable_write(1);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
+	hdmi_out0_core_initiator_base_write((uint32_t)&cam_buff_1);
 
 	/* enable loop mode */
 	dma_block_cfg_cam.source_gather_en = 1;
@@ -268,7 +292,7 @@ void display_video_with_overlay_cam1(void)
 	suspend_hdmi = false;
 
 	dma_cfg_cam1.dma_callback = cam_with_gpu_dma_user_callback;
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+	dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 
 	dma_block_cfg_gpu_in.dest_address = 0;
@@ -304,7 +328,7 @@ void display_video_with_overlay_cam1(void)
 #ifdef MEASURE_PERFORMANCE
 	start_time_gpu = timing_counter_get();
 #endif
-	blend_images((uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
+	blend_images((uint32_t)&cam_buff_1, (uint32_t)&gpu_buff_1);
 }
 
 void display_video_with_overlay_cam2(void)
@@ -314,7 +338,7 @@ void display_video_with_overlay_cam2(void)
 	suspend_hdmi = false;
 
 	dma_cfg_cam2.dma_callback = cam_with_gpu_dma_user_callback;
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+	dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 
 	dma_block_cfg_gpu_in.dest_address = 0;
@@ -348,14 +372,17 @@ void display_video_with_overlay_cam2(void)
 #ifdef MEASURE_PERFORMANCE
 	start_time_gpu = timing_counter_get();
 #endif
-	blend_images((uint32_t)&img_buff_1, (uint32_t)&img_buff_4);
+	blend_images((uint32_t)&cam_buff_1, (uint32_t)&gpu_buff_1);
 }
 
 static int cmd_display_image_with_overlay(const struct shell *shell, size_t argc, char **argv)
 {
+	reset_cam_buffers();
+	reset_gpu_buffers();
+
 	hdmi_out0_core_initiator_enable_write(1);
 	dma_cfg_cam1.dma_callback = cam1_dma_user_callback;
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+	dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 	dma_start(fastvdma_dev_cam_1, 0);
 	k_msleep(300);
@@ -369,9 +396,9 @@ static int cmd_display_image_with_overlay(const struct shell *shell, size_t argc
 		}
 	}
 
-	blend_images((uint32_t)&img_buff_1, (uint32_t)&img_buff_7);
+	blend_images((uint32_t)&cam_buff_1, (uint32_t)&gpu_buff_1);
 
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_7);
+	hdmi_out0_core_initiator_base_write((uint32_t)&gpu_buff_1);
 
 	return 0;
 }
@@ -395,6 +422,8 @@ static int cmd_generate_and_send_overlay(const struct shell *shell, size_t argc,
 
 static int cmd_display_buffer(const struct shell *shell, size_t argc, char **argv)
 {
+	reset_cam_buffers();
+
 	if (!strcmp(argv[1], "left")) {
 		shell_print(shell, "Displaying single buffer of LEFT camera...");
 		display_buffer1();
@@ -410,6 +439,8 @@ static int cmd_display_buffer(const struct shell *shell, size_t argc, char **arg
 
 static int cmd_display_video(const struct shell *shell, size_t argc, char **argv)
 {
+	reset_cam_buffers();
+
 	if (!strcmp(argv[1], "left")) {
 		shell_print(shell, "Displaying stream from LEFT camera...");
 		display_video_cam1();
@@ -427,6 +458,9 @@ static int cmd_display_video(const struct shell *shell, size_t argc, char **argv
 
 static int cmd_display_video_with_overlay(const struct shell *shell, size_t argc, char **argv)
 {
+	reset_cam_buffers();
+	reset_gpu_buffers();
+
 	if (!strcmp(argv[1], "left")) {
 		shell_print(shell, "Displaying stream from LEFT camera with applied overlay...");
 
@@ -503,7 +537,7 @@ static int cmd_display_blent_images(const struct shell *shell, size_t argc, char
 	dma_block_cfg_gpu_in.source_address = (uint32_t)&image_1;
 	dma_config(fastvdma_dev_gpu_in_2, 0, &dma_cfg_gpu_in);
 	dma_block_cfg_gpu_out.source_address = 0;
-	dma_block_cfg_gpu_out.dest_address = (uint32_t)&img_buff_1;
+	dma_block_cfg_gpu_out.dest_address = (uint32_t)&cam_buff_1;
 	dma_config(fastvdma_dev_gpu_out, 0, &dma_cfg_gpu_out);
 
 	/* Start GPU */
@@ -515,7 +549,7 @@ static int cmd_display_blent_images(const struct shell *shell, size_t argc, char
 	dma_start(fastvdma_dev_gpu_out, 0);
 
 	hdmi_out0_core_initiator_enable_write(1);
-	hdmi_out0_core_initiator_base_write((uint32_t)&img_buff_1);
+	hdmi_out0_core_initiator_base_write((uint32_t)&cam_buff_1);
 
 	return 0;
 #endif

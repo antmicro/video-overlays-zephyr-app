@@ -86,7 +86,7 @@ int init_socket(void)
 	}
 	/* Bind socket to pc address */
 	ret = bind_socket(sock, (struct sockaddr *)&arty_sockaddr,
-			  sizeof(arty_sockaddr));
+				sizeof(arty_sockaddr));
 	if (ret < 0) {
 		printf("Failed to bind socket: %d, errno: %d\n", ret, -errno);
 		return -1;
@@ -118,7 +118,7 @@ void send_image(uint32_t img_buff[], uint32_t img_length)
 	ret = send_num_msgs_arr(sock, (struct sockaddr *)&host_sockaddr);
 	if (ret < 0)
 		printf("Failed to send data. Error: %d, errno: %d\n", ret,
-			   -errno);
+				-errno);
 
 	int k = 0;
 
@@ -134,7 +134,7 @@ void send_image(uint32_t img_buff[], uint32_t img_length)
 		ret = send_data(sock, (struct sockaddr *)&host_sockaddr);
 		if (ret < 0)
 			printf("Failed to send data. Error: %d, errno: %d\n",
-				   ret, -errno);
+					ret, -errno);
 		num_msgs--;
 	}
 	printf("remainder: %d\n", rem);

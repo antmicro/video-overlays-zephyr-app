@@ -140,7 +140,7 @@ void dma_init_cam1(void)
 	/*set block size, driver will get image width from that */
 	dma_block_cfg_cam.block_size = 800 * 600;
 
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+	dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 	dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 
 }
@@ -158,7 +158,7 @@ void dma_init_cam2(void)
 	/* from peripheral to memory (0) */
 	dma_block_cfg_cam.source_address = 0;
 
-	// /* enable loop mode */
+	/* enable loop mode */
 	dma_block_cfg_cam.source_gather_en = 1;
 	dma_block_cfg_cam.dest_scatter_en = 1;
 
@@ -169,7 +169,7 @@ void dma_init_cam2(void)
 	/*set block size, driver will get image width from that */
 	dma_block_cfg_cam.block_size = 800 * 600;
 
-	dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+	dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 	dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 }
 
@@ -186,10 +186,6 @@ void dma_init_gpu_inputs(void)
 
 	/* from memory to peripheral */
 	dma_block_cfg_gpu_in.dest_address = 0;
-
-	/* enable loop mode */
-	// dma_block_cfg_gpu_in.source_gather_en = 1;
-	// dma_block_cfg_gpu_in.dest_scatter_en = 1;
 
 	/* set image height */
 	dma_block_cfg_gpu_in.source_gather_count = 600;
@@ -215,10 +211,6 @@ void dma_init_gpu_output(void)
 
 	/* from peripheral to memory (0) */
 	dma_block_cfg_gpu_out.source_address = 0;
-
-	/* enable loop mode */
-	// dma_block_cfg_gpu_out.source_gather_en = 1;
-	// dma_block_cfg_gpu_out.dest_scatter_en = 1;
 
 	/* set image height */
 	dma_block_cfg_gpu_out.source_gather_count = 600;
@@ -261,27 +253,16 @@ void cam(void)
 			if (k_sem_take(&my_sem, K_MSEC(10)) != 0) {
 				printf("Input data not available- %s!\n", __func__);
 			} else {
-				if (!block_buff[0]) {
-					dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
-					block_buff[0] = true;
-					block_buff[blocked_buff_cam] = false;
-					gpu_buffer_index = blocked_buff_cam;
-					k_sem_give(&my_sem);
-					blocked_buff_cam = 0;
-				} else if (!block_buff[1]) {
-					dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
-					block_buff[1] = true;
-					block_buff[blocked_buff_cam] = false;
-					gpu_buffer_index = blocked_buff_cam;
-					k_sem_give(&my_sem);
-					blocked_buff_cam = 1;
-				} else if (!block_buff[2]) {
-					dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_3;
-					block_buff[2] = true;
-					block_buff[blocked_buff_cam] = false;
-					gpu_buffer_index = blocked_buff_cam;
-					k_sem_give(&my_sem);
-					blocked_buff_cam = 2;
+				for (int i = 0; i < 3; i++) {
+					if (!block_buff[i]) {
+						dma_block_cfg_cam.dest_address = (uint32_t)hdmi_buffers[i];
+						block_buff[i] = true;
+						block_buff[blocked_buff_cam] = false;
+						gpu_buffer_index = blocked_buff_cam;
+						k_sem_give(&my_sem);
+						blocked_buff_cam = i;
+						break;
+					}
 				}
 				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);

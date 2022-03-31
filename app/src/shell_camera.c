@@ -57,11 +57,11 @@ int ov2640_set_resolution(const struct shell *shell, int w, int h, char *camera)
 				dma_block_cfg_cam.block_size = w * h;
 
 				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+				dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 
 				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
+				dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_2;
 				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 			}
 			i++;
@@ -83,7 +83,7 @@ int ov2640_set_resolution(const struct shell *shell, int w, int h, char *camera)
 				/*set block size, driver will get image width from that */
 				dma_block_cfg_cam.block_size = w * h;
 				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_1;
+				dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_1;
 				dma_config(fastvdma_dev_cam_1, 0, &dma_cfg_cam1);
 			}
 			i++;
@@ -105,7 +105,7 @@ int ov2640_set_resolution(const struct shell *shell, int w, int h, char *camera)
 				/*set block size, driver will get image width from that */
 				dma_block_cfg_cam.block_size = w * h;
 				dma_block_cfg_cam.source_address = 0;
-				dma_block_cfg_cam.dest_address = (uint32_t)&img_buff_2;
+				dma_block_cfg_cam.dest_address = (uint32_t)&cam_buff_2;
 				dma_config(fastvdma_dev_cam_2, 0, &dma_cfg_cam2);
 			}
 			i++;
@@ -561,8 +561,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	SHELL_CMD_ARG(colorbar, NULL, "\t[1|0] Enable/disable test colorbar", cmd_ov2640_set_colorbar, 2, 1),
 	SHELL_CMD_ARG(whitebal, NULL, "\t[1|0] Enable/disable automatic white balance", cmd_ov2640_set_whitebal, 2, 1),
 	SHELL_CMD_ARG(gainctrl, NULL, "\t[1|0] Enable/disable automatic gain control", cmd_ov2640_set_gainctrl, 2, 1),
-	SHELL_CMD_ARG(exposurectrl, NULL, "\t[1|0] Enable/disable automatic exposure control", cmd_ov2640_set_exposurectrl,
-			  2, 1),
+	SHELL_CMD_ARG(exposurectrl, NULL, "\t[1|0] Enable/disable automatic exposure control", cmd_ov2640_set_exposurectrl, 2, 1),
 	SHELL_CMD_ARG(hflip, NULL, "\t[1|0] Enable/disable horizontal flip", cmd_ov2640_set_horizontal_mirror, 2, 1),
 	SHELL_CMD_ARG(vflip, NULL, "\t[1|0] Enable/disable vertical flip", cmd_ov2640_set_vertical_flip, 2, 1),
 	SHELL_CMD_ARG(clock_div, NULL, "\t(1 to 64) Set camera clock divider", cmd_ov2640_set_clock_div, 2, 1),

@@ -4,28 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-extern const struct device *fastvdma_dev_cam_1;
-extern const struct device *fastvdma_dev_cam_2;
-extern const struct device *fastvdma_dev_gpu_in_1;
-extern const struct device *fastvdma_dev_gpu_in_2;
-extern const struct device *fastvdma_dev_gpu_out;
-extern struct dma_config dma_cfg_cam1;
-extern struct dma_config dma_cfg_cam2;
-extern struct dma_config dma_cfg_gpu_in;
-extern struct dma_config dma_cfg_gpu_out;
-extern struct dma_block_config dma_block_cfg_cam;
-extern struct dma_block_config dma_block_cfg_gpu_in;
-extern struct dma_block_config dma_block_cfg_gpu_out;
-extern uint32_t overlay_image[1280 * 1024];
-extern uint32_t img_buff_1[1280 * 1024];
-extern uint32_t img_buff_2[1280 * 1024];
-extern uint32_t img_buff_3[1280 * 1024];
-extern uint32_t img_buff_4[1280 * 1024];
-extern uint32_t img_buff_5[1280 * 1024];
-extern uint32_t img_buff_6[1280 * 1024];
-extern uint32_t img_buff_7[1280 * 1024];
-extern uint32_t *hdmi_buffers[3];
-extern uint32_t *hdmi_buffers_overlay[3];
+#include "common.h"
+
 extern int cam_buffer_index;
 extern int gpu_buffer_index;
 
